@@ -1,0 +1,40 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><%= link_to "Organizaciones", organizations_path %></li>
+    <li class="breadcrumb-item active"><%= @organization.name %></li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0"><%= @organization.name %></h1>
+  <div class="d-flex gap-2">
+    <%= link_to "Editar", edit_organization_path(@organization), class: "btn btn-outline-secondary" %>
+    <%= button_to "Eliminar", @organization, method: :delete, class: "btn btn-outline-danger",
+          form: { data: { turbo_confirm: "Se eliminarán la organización y todas sus áreas. ¿Continuar?" } } %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center bg-white">
+    <span class="fw-semibold">Áreas</span>
+    <%= link_to "Nueva área", new_organization_area_path(@organization), class: "btn btn-sm btn-primary" %>
+  </div>
+
+  <% if @areas.any? %>
+    <ul class="list-group list-group-flush">
+      <% @areas.each do |area| %>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <%= area.name %>
+          <div class="d-flex gap-2">
+            <%= link_to "Editar", edit_organization_area_path(@organization, area), class: "btn btn-sm btn-outline-secondary" %>
+            <%= button_to "Eliminar", organization_area_path(@organization, area), method: :delete,
+                  class: "btn btn-sm btn-outline-danger",
+                  form: { data: { turbo_confirm: "¿Eliminar el área #{area.name}?" } } %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <div class="card-body text-secondary">Esta organización todavía no tiene áreas.</div>
+  <% end %>
+</div>

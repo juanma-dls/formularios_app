@@ -1,0 +1,20 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Organizaciones</h1>
+  <%= link_to "Nueva organización", new_organization_path, class: "btn btn-primary" %>
+</div>
+
+<% if @organizations.any? %>
+  <div class="list-group">
+    <% @organizations.each do |org| %>
+      <%= link_to org, class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center" do %>
+        <span><%= org.name %></span>
+        <span class="badge text-bg-light border"><%= pluralize(org.areas.size, "área", plural: "áreas") %></span>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="text-center text-secondary py-5 bg-white rounded border">
+    <p class="mb-3">Todavía no hay organizaciones.</p>
+    <%= link_to "Crear la primera", new_organization_path, class: "btn btn-primary" %>
+  </div>
+<% end %>

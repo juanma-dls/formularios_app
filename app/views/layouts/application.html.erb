@@ -23,7 +23,18 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <%= yield %>
+  <body class="bg-light">
+    <nav class="navbar bg-white border-bottom mb-4">
+      <div class="container">
+        <%= link_to "Formularios", root_path, class: "navbar-brand fw-semibold" %>
+      </div>
+    </nav>
+
+    <main class="container pb-5">
+      <% if notice %><div class="alert alert-success"><%= notice %></div><% end %>
+      <% if alert %><div class="alert alert-danger"><%= alert %></div><% end %>
+
+      <%= yield %>
+    </main>
   </body>
 </html>

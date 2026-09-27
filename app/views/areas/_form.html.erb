@@ -1,0 +1,11 @@
+<%= form_with model: [organization, area] do |f| %>
+  <%= render "shared/errors", model: area %>
+
+  <div class="mb-3">
+    <%= f.label :name, class: "form-label" %>
+    <%= f.text_field :name, class: "form-control", autofocus: true, required: true %>
+  </div>
+
+  <%= f.submit "Guardar", class: "btn btn-primary" %>
+  <%= link_to "Cancelar", organization, class: "btn btn-link" %>
+<% end %>

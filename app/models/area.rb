@@ -7,4 +7,8 @@ class Area < ApplicationRecord
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: { scope: :organization_id },
                    format: { with: /\A[a-z0-9-]+\z/ }
+
+  def to_param
+    slug
+  end
 end

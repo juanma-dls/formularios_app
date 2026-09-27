@@ -1,0 +1,16 @@
+es:
+  activerecord:
+    models:
+      organization:
+        one: Organización
+        other: Organizaciones
+      area:
+        one: Área
+        other: Áreas
+    attributes:
+      organization:
+        name: Nombre
+        slug: Identificador
+      area:
+        name: Nombre
+        slug: Identificador
