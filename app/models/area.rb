@@ -1,4 +1,6 @@
 class Area < ApplicationRecord
+  include SpreadsheetConnectable
+
   belongs_to :organization
   has_many :memberships, dependent: :destroy
 
@@ -10,5 +12,9 @@ class Area < ApplicationRecord
 
   def to_param
     slug
+  end
+
+  def effective_spreadsheet_id
+    spreadsheet_id.presence || organization.spreadsheet_id
   end
 end

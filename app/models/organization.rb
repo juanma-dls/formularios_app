@@ -1,4 +1,6 @@
 class Organization < ApplicationRecord
+  include SpreadsheetConnectable
+  
   has_many :areas, dependent: :destroy
   has_many :memberships, dependent: :destroy
   has_many :users, through: :memberships

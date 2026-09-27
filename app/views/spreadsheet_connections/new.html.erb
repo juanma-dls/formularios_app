@@ -1,0 +1,34 @@
+<h1 class="h3 mb-1">Conectar planilla de Google</h1>
+<p class="text-secondary mb-4"><%= [@organization.name, @area&.name].compact.join(" / ") %></p>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <ol class="mb-0">
+      <li class="mb-2">
+        Creá una planilla nueva en <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>
+        con la cuenta de Google donde se van a guardar las respuestas.
+      </li>
+      <li class="mb-2">
+        Tocá <strong>Compartir</strong> y agregá este email como <strong>Editor</strong>
+        (podés desmarcar "Notificar a las personas"):
+        <input class="form-control font-monospace mt-2" style="max-width: 36rem"
+               value="<%= GoogleSheets.service_account_email %>" readonly onclick="this.select()">
+      </li>
+      <li>Copiá el enlace de la planilla desde la barra del navegador y pegalo acá abajo.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <%= form_with url: polymorphic_path([@organization, @area, :spreadsheet_connection].compact), method: :post do |f| %>
+      <div class="mb-3">
+        <%= f.label :spreadsheet_url, "Enlace de la planilla", class: "form-label" %>
+        <%= f.text_field :spreadsheet_url, value: params[:spreadsheet_url], class: "form-control",
+              required: true, placeholder: "https://docs.google.com/spreadsheets/d/..." %>
+      </div>
+      <%= f.submit "Verificar y conectar", class: "btn btn-primary", data: { turbo_submits_with: "Verificando…" } %>
+      <%= link_to "Cancelar", @organization, class: "btn btn-link" %>
+    <% end %>
+  </div>
+</div>

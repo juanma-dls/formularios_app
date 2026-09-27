@@ -14,6 +14,26 @@
   </div>
 </div>
 
+<div class="card mb-4">
+  <div class="card-body d-flex justify-content-between align-items-center">
+    <div>
+      <div class="fw-semibold">Planilla de Google</div>
+      <% if @organization.spreadsheet_connected? %>
+        <%= link_to @organization.spreadsheet_title, @organization.spreadsheet_url, target: "_blank", rel: "noopener" %>
+      <% else %>
+        <span class="text-secondary">Sin conectar. Las respuestas no se van a poder sincronizar.</span>
+      <% end %>
+    </div>
+    <% if @organization.spreadsheet_connected? %>
+      <%= button_to "Desconectar", organization_spreadsheet_connection_path(@organization), method: :delete,
+            class: "btn btn-sm btn-outline-danger",
+            form: { data: { turbo_confirm: "¿Desconectar la planilla? Los datos que ya tiene no se borran." } } %>
+    <% else %>
+      <%= link_to "Conectar", new_organization_spreadsheet_connection_path(@organization), class: "btn btn-sm btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center bg-white">
     <span class="fw-semibold">Áreas</span>
@@ -24,8 +44,25 @@
     <ul class="list-group list-group-flush">
       <% @areas.each do |area| %>
         <li class="list-group-item d-flex justify-content-between align-items-center">
-          <%= area.name %>
+          <div>
+            <%= area.name %>
+            <div class="small text-secondary">
+              <% if area.spreadsheet_connected? %>
+                Planilla propia: <%= link_to area.spreadsheet_title, area.spreadsheet_url, target: "_blank", rel: "noopener" %>
+              <% else %>
+                Usa la planilla de la organización
+              <% end %>
+            </div>
+          </div>
           <div class="d-flex gap-2">
+            <% if area.spreadsheet_connected? %>
+              <%= button_to "Desconectar planilla", organization_area_spreadsheet_connection_path(@organization, area),
+                    method: :delete, class: "btn btn-sm btn-outline-secondary",
+                    form: { data: { turbo_confirm: "¿Desconectar la planilla de esta área?" } } %>
+            <% else %>
+              <%= link_to "Planilla propia", new_organization_area_spreadsheet_connection_path(@organization, area),
+                    class: "btn btn-sm btn-outline-primary" %>
+            <% end %>
             <%= link_to "Editar", edit_organization_area_path(@organization, area), class: "btn btn-sm btn-outline-secondary" %>
             <%= button_to "Eliminar", organization_area_path(@organization, area), method: :delete,
                   class: "btn btn-sm btn-outline-danger",
