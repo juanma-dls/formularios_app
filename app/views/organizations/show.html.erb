@@ -14,7 +14,7 @@
       <% if @organization.spreadsheet_connected? %>
         <%= link_to @organization.spreadsheet_title, @organization.spreadsheet_url, target: "_blank", rel: "noopener" %>
       <% else %>
-        <span class="text-secondary">Sin conectar. Las respuestas no se van a poder sincronizar.</span>
+        <span class="text-secondary">Opcional. Si la conectás, los formularios de la organización envían sus respuestas a Google Sheets.</span>
       <% end %>
       <div><%= link_to "¿Cómo funciona?", help_spreadsheets_path, class: "small" %></div>
     </div>

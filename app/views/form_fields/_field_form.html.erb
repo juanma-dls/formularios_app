@@ -26,6 +26,14 @@
     </div>
   <% end %>
 
+  <% if @field.field_type == "phone" %>
+    <div class="form-check mb-3">
+      <%= f.check_box :split_area_code, class: "form-check-input" %>
+      <%= f.label :split_area_code, "Pedir el código de área por separado", class: "form-check-label" %>
+      <div class="form-text">Muestra dos campos, código de área y número, y valida que sea un teléfono argentino.</div>
+    </div>
+  <% end %>
+
   <% if @field.choice? %>
     <% image = @field.field_type == "image_choice" %>
     <div class="mb-3" data-controller="options-editor">

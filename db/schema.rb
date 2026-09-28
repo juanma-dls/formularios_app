@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_153907) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_164320) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -80,6 +80,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_153907) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "starts_page", default: false, null: false
+    t.boolean "split_area_code", default: false, null: false
     t.index ["form_id", "key"], name: "index_form_fields_on_form_id_and_key", unique: true
     t.index ["form_id"], name: "index_form_fields_on_form_id"
   end

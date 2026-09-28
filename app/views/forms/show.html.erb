@@ -22,6 +22,11 @@
       <% end %>
     <% end %>
 
+    <%= link_to form_submissions_path(@form), class: "btn btn-outline-primary" do %>
+      <i class="bi bi-table me-1"></i>Respuestas
+      <span class="badge bg-primary-subtle text-primary-emphasis ms-1"><%= @form.submissions.where(purged_at: nil).count %></span>
+    <% end %>
+
     <% case @form.status %>
     <% when "draft" %>
       <%= button_to publish_form_path(@form), method: :patch, class: "btn btn-success" do %>
@@ -139,7 +144,7 @@
               <div class="flex-grow-1" data-controller="clipboard">
                 <div class="input-group">
                   <input class="form-control font-monospace" value="<%= public_form_url(@form.public_id) %>" readonly
-                        data-clipboard-target="source" data-controller="select-all" data-action="click->select-all#select">
+                         data-clipboard-target="source" data-controller="select-all" data-action="click->select-all#select">
                   <button type="button" class="btn btn-outline-primary" data-clipboard-target="button" data-action="clipboard#copy">
                     <i class="bi bi-clipboard me-1"></i>Copiar
                   </button>
@@ -149,8 +154,10 @@
                 <% end %>
               </div>
               <img src="<%= qr_form_path(@form) %>" alt="Código QR del formulario" width="112" height="112"
-                  class="border rounded bg-white p-1">
+                   class="border rounded bg-white p-1">
             </div>
+          <% elsif @form.paused? %>
+            <span class="text-secondary">El enlace está pausado. Reanudá el formulario para volver a recibir respuestas.</span>
           <% elsif @form.closed? %>
             <span class="text-secondary">El formulario está cerrado y no recibe respuestas.</span>
           <% else %>
@@ -163,29 +170,46 @@
     <div class="list-group-item py-3">
       <div class="row align-items-center g-2">
         <div class="col-md-3 fw-semibold"><i class="bi bi-table me-1 text-secondary"></i>Planilla</div>
-        <div class="col-md-6">
+        <div class="<%= @form.closed? ? 'col-md-9' : 'col-md-6' %>">
           <% if (source = @form.spreadsheet_source) %>
             <%= link_to source.spreadsheet_title, source.spreadsheet_url, target: "_blank", rel: "noopener" %>
             <div class="small text-secondary"><%= spreadsheet_source_text(@form) %></div>
           <% else %>
-            <span class="text-danger">Sin planilla conectada. No se puede publicar hasta conectar una.</span>
+            <span class="text-secondary">
+              Opcional. Las respuestas se ven en la sección Respuestas; conectá una planilla si además querés enviarlas a Google Sheets.
+            </span>
           <% end %>
-          <%= link_to "¿Cómo funciona?", help_spreadsheets_path(anchor: "donde"), class: "small", target: "_blank" %>
-        </div>
-        <div class="col-md-3 text-md-end">
-          <% if @form.spreadsheet_connected? %>
-            <%= button_to "Desconectar", form_spreadsheet_connection_path(@form), method: :delete,
-                  class: "btn btn-sm btn-outline-secondary",
-                  form: { data: { turbo_confirm: "¿Desconectar? El formulario va a volver a usar la planilla del área." } } %>
-          <% else %>
-            <%= link_to "Usar planilla propia", new_form_spreadsheet_connection_path(@form), class: "btn btn-sm btn-outline-primary" %>
+
+          <% if @form.adopt_spreadsheet? %>
+            <div class="small text-primary">
+              <i class="bi bi-arrow-repeat me-1"></i>Empieza a enviar sus respuestas a esta planilla en unos segundos.
+            </div>
+          <% elsif @form.synced_spreadsheet_id.present? && @form.synced_spreadsheet_id != @form.effective_spreadsheet_id && !@form.draft? %>
+            <div class="small text-warning-emphasis">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              Sigue escribiendo en la planilla con la que se publicó. Para pasar a esta, pausá y reanudá el formulario.
+            </div>
           <% end %>
+
+          <div><%= link_to "¿Cómo funciona?", help_spreadsheets_path(anchor: "donde"), class: "small", target: "_blank" %></div>
         </div>
+
+        <% unless @form.closed? %>
+          <div class="col-md-3 text-md-end">
+            <% if @form.spreadsheet_connected? %>
+              <%= button_to "Desconectar", form_spreadsheet_connection_path(@form), method: :delete,
+                    class: "btn btn-sm btn-outline-secondary",
+                    form: { data: { turbo_confirm: "¿Desconectar? El formulario va a volver a usar la planilla del área o de la organización, si tienen una." } } %>
+            <% else %>
+              <%= link_to "Usar planilla propia", new_form_spreadsheet_connection_path(@form), class: "btn btn-sm btn-outline-primary" %>
+            <% end %>
+          </div>
+        <% end %>
       </div>
     </div>
 
     <% if @form.sheet_gid %>
-      <% pending = @form.submissions.where(synced_at: nil).count %>
+      <% pending = @form.submissions.where(synced_at: nil, purged_at: nil).count %>
       <div class="list-group-item py-3">
         <div class="row align-items-center g-2">
           <div class="col-md-3 fw-semibold"><i class="bi bi-arrow-repeat me-1 text-secondary"></i>Sincronización</div>
@@ -211,35 +235,30 @@
 </div>
 
 <div class="row g-4">
-  <div class="<%= @form.closed? ? 'col-12' : 'col-lg-8' %>">
+  <div class="<%= @form.closed? ? 'col-12' : 'col-lg-8' %>" data-controller="pages">
     <div class="d-flex align-items-baseline justify-content-between mb-3">
       <h2 class="h5 mb-0">Preguntas</h2>
-      <% page_count = @form.pages.size %>
-      <span class="small text-secondary">
+      <span class="small text-secondary" data-pages-target="summary">
         <%= pluralize(@form.question_count, "pregunta", plural: "preguntas") %><%= " en #{@form.page_count} páginas" if @form.page_count > 1 %>
       </span>
     </div>
 
-    <% if @fields.empty? %>
-      <div id="fields_empty" class="card card-body text-secondary mb-2">
-        Todavía no hay preguntas. Elegí un tipo en el panel para agregar la primera, o sumá un bloque completo.
-      </div>
-    <% end %>
+    <div id="fields_empty" class="card card-body text-secondary mb-2" data-pages-target="empty" <%= "hidden" if @fields.any? %>>
+      Todavía no hay preguntas. Elegí un tipo en el panel para agregar la primera, o sumá un bloque completo.
+    </div>
 
-    <div data-controller="pages">
-      <div class="page-divider d-flex align-items-center gap-2" data-page="1" data-pages-target="firstHeader" hidden>
-        <button type="button" class="btn btn-sm btn-link text-body p-0 page-toggle" data-action="pages#toggle"
-                aria-expanded="true" aria-label="Mostrar u ocultar las preguntas de esta página">
-          <i class="bi bi-chevron-down"></i>
-        </button>
-        <span class="fw-semibold">Página 1</span>
-        <span class="small text-secondary ms-auto" data-page-count></span>
-      </div>
+    <div class="page-divider d-flex align-items-center gap-2" data-page="1" data-pages-target="firstHeader" hidden>
+      <button type="button" class="btn btn-sm btn-link text-body p-0 page-toggle" data-action="pages#toggle"
+              aria-expanded="true" aria-label="Mostrar u ocultar las preguntas de esta página">
+        <i class="bi bi-chevron-down"></i>
+      </button>
+      <span class="fw-semibold">Página 1</span>
+      <span class="small text-secondary ms-auto d-none d-sm-inline" data-page-count></span>
+    </div>
 
-      <div id="fields" <%= 'data-controller="sortable"'.html_safe unless @form.closed? %>
-          data-sortable-url-value="<%= reorder_form_form_fields_path(@form) %>">
-        <%= render partial: "form_fields/form_field", collection: @fields, as: :field, locals: { readonly: @form.closed? } %>
-      </div>
+    <div id="fields" <%= 'data-controller="sortable"'.html_safe unless @form.closed? %>
+        data-sortable-url-value="<%= reorder_form_form_fields_path(@form) %>">
+      <%= render partial: "form_fields/form_field", collection: @fields, as: :field, locals: { readonly: @form.closed? } %>
     </div>
   </div>
 

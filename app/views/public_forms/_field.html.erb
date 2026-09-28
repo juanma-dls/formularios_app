@@ -3,7 +3,7 @@
 <% invalid = error.present? ? " is-invalid" : "" %>
 <% group = %w[single_choice multiple_choice image_choice].include?(field.field_type) %>
 
-<div class="bg-white rounded border p-4 mb-3<%= ' border-danger' if error %>"
+<div class="bg-white rounded border p-4 mb-3<%= ' border-danger' if error %>" data-split="<%= field.split_area_code? %>"
      data-live-validation-target="field" data-type="<%= field.field_type %>" data-required="<%= field.required? %>"
      <%= "data-has-error" if error %>>
   <%= content_tag(group ? :div : :label, id: "#{id}_label", for: (group ? nil : id),
@@ -26,8 +26,25 @@
     <%= email_field_tag name, value, id: id, autocomplete: "email", class: "form-control#{invalid}" %>
 
   <% when "phone" %>
-    <%= telephone_field_tag name, value, id: id, autocomplete: "tel", placeholder: "Ej: 2615551234",
-          class: "form-control#{invalid}" %>
+    <% if field.split_area_code? %>
+      <% parts = value.is_a?(Hash) ? value : {} %>
+      <div class="row g-2" style="max-width: 26rem">
+        <div class="col-4">
+          <label class="form-label small text-secondary mb-1" for="<%= id %>">Código de área</label>
+          <%= text_field_tag "#{name}[area]", parts["area"], id: id, inputmode: "numeric", maxlength: 5,
+                placeholder: "261", autocomplete: "tel-area-code", class: "form-control#{invalid}" %>
+        </div>
+        <div class="col-8">
+          <label class="form-label small text-secondary mb-1" for="<%= id %>_number">Número</label>
+          <%= text_field_tag "#{name}[number]", parts["number"], id: "#{id}_number", inputmode: "numeric", maxlength: 10,
+                placeholder: "5551234", autocomplete: "tel-local", class: "form-control#{invalid}" %>
+        </div>
+      </div>
+      <div class="form-text">Sin el 0 ni el 15.</div>
+    <% else %>
+      <%= telephone_field_tag name, value, id: id, autocomplete: "tel", placeholder: "Ej: 2615551234",
+            class: "form-control#{invalid}" %>
+    <% end %>
 
   <% when "dni" %>
     <%= text_field_tag name, value, id: id, inputmode: "numeric", maxlength: 10, placeholder: "Solo números",

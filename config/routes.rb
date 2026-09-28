@@ -34,6 +34,8 @@ Rails.application.routes.draw do
         post :duplicate
       end
     end
+
+    resources :submissions, path: "respuestas", only: %i[index show]
   end
 
   get  "f/:public_id",         to: "public_forms#show",   as: :public_form

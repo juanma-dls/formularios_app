@@ -27,15 +27,19 @@ class FormArchive
   private
 
   def headers
-    list = ["ID", "Fecha y hora"] + @fields.map(&:label)
+    list = ["ID", "Fecha y hora"] + columns.map { |c| c["label"] }
     list << "Aceptó bases y condiciones" if @form.terms_required?
     list
   end
 
+  def columns
+    @columns ||= @fields.flat_map(&:columns)
+  end
+
   def row_for(submission)
     row = [submission.id.to_s, submission.created_at.in_time_zone.strftime("%Y-%m-%d %H:%M:%S")]
-    row += @fields.map do |field|
-      value = submission.answers[field.key]
+    row += columns.map do |column|
+      value = FormField.value_for_column(submission.answers, column["key"])
       value.is_a?(Array) ? value.join(", ") : value.to_s
     end
     row << submission.terms_accepted_at&.in_time_zone&.strftime("%Y-%m-%d %H:%M:%S").to_s if @form.terms_required?

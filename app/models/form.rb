@@ -68,6 +68,15 @@ class Form < ApplicationRecord
     limits.min
   end
 
+  # Un formulario activo sin planilla adopta la de su área u organización en cuanto aparece
+  def adopt_spreadsheet?
+    (published? || paused?) && synced_spreadsheet_id.blank? && effective_spreadsheet_id.present?
+  end
+
+  def syncable?
+    synced_spreadsheet_id.present? || adopt_spreadsheet?
+  end
+
   private
 
   def captcha_configured

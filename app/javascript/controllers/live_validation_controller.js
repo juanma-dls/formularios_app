@@ -6,6 +6,8 @@ const MESSAGES = {
   terms: "Para enviar tenés que aceptar las bases y condiciones.",
   dni: "El DNI debe tener 7 u 8 números.",
   phone: "Ingresá un teléfono con código de área.",
+  phoneParts: "Completá el código de área y el número.",
+  phoneSplit: "Revisá el código de área y el número: entre los dos tienen que sumar 10 dígitos.",
   email: "Ingresá un email válido.",
   number: "Ingresá un número válido."
 }
@@ -25,6 +27,8 @@ export default class extends Controller {
   check(event) {
     const field = event.target.closest("[data-type]")
     if (!field || !this.fieldTargets.includes(field)) return
+
+    if (event.type === "focusout" && field.contains(event.relatedTarget)) return
 
     const message = this.errorFor(field)
     const shown = !field.querySelector("[data-role=error]").hidden
@@ -52,6 +56,9 @@ export default class extends Controller {
   errorFor(field) {
     const type = field.dataset.type
     const required = field.dataset.required === "true"
+
+    if (type === "phone" && field.dataset.split === "true") return this.splitPhoneError(field, required)
+
     const inputs = [...field.querySelectorAll("input:not([type=hidden]), select, textarea")]
     const value = GROUP_TYPES.includes(type)
       ? (inputs.some((input) => input.checked) ? "ok" : "")
@@ -93,5 +100,17 @@ export default class extends Controller {
       })
     if (invalid.length) this.focusField(invalid[0])
     return invalid.length === 0
+  }
+
+  splitPhoneError(field, required) {
+    const [areaInput, numberInput] = field.querySelectorAll("input")
+    const area = areaInput.value.replace(/\D/g, "").replace(/^0+/, "")
+    let number = numberInput.value.replace(/\D/g, "")
+
+    if (!area && !number) return required ? MESSAGES.required : null
+    if (!area || !number) return MESSAGES.phoneParts
+    if ((area + number).length === 12 && number.startsWith("15")) number = number.slice(2)
+    if (area.length < 2 || area.length > 4 || (area + number).length !== 10) return MESSAGES.phoneSplit
+    return null
   }
 }

@@ -28,7 +28,7 @@ class FormSheetSync
 
   def prune_unused_columns!
     current = Array(@form.sheet_columns)
-    active_keys = @form.fields.select(&:input?).map(&:key)
+    active_keys = @form.fields.select(&:input?).flat_map { |field| field.columns.map { |c| c["key"] } }
     active_keys << Submission::TERMS_KEY if @form.terms_required?
 
     removable = current.each_index.select do |i|
@@ -43,7 +43,8 @@ class FormSheetSync
   end
 
   def pending_data_for?(key)
-    @form.submissions.where(synced_at: nil).any? { |submission| submission.answers[key].present? }
+    base = key.split(":", 2).first
+    @form.submissions.where(synced_at: nil).any? { |submission| submission.answers[base].present? }
   end
 
   def column_empty?(index)
@@ -105,8 +106,11 @@ class FormSheetSync
     @columns ||= begin
       cols = Array(@form.sheet_columns).map(&:dup)
       @form.fields.each do |field|
-        existing = cols.find { |c| c["key"] == field.key }
-        existing ? existing["label"] = field.label : cols << { "key" => field.key, "label" => field.label }
+        next if field.section?
+        field.columns.each do |column|
+          existing = cols.find { |c| c["key"] == column["key"] }
+          existing ? existing["label"] = column["label"] : cols << column.dup
+        end
       end
 
       if @form.terms_required? && cols.none? { |c| c["key"] == Submission::TERMS_KEY }
@@ -123,7 +127,7 @@ class FormSheetSync
         if c["key"] == Submission::TERMS_KEY
           submission.terms_accepted_at&.in_time_zone&.strftime("%Y-%m-%d %H:%M:%S").to_s
         else
-          cell(submission.answers[c["key"]])
+          cell(FormField.value_for_column(submission.answers, c["key"]))
         end
       end
   end

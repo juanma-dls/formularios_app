@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Numera las páginas del constructor, cuenta sus preguntas y permite contraerlas
 export default class extends Controller {
-  static targets = ["item", "firstHeader"]
+  static targets = ["item", "firstHeader", "summary", "empty"]
 
   connect() {
     this.renumber()
@@ -43,6 +43,15 @@ export default class extends Controller {
     if (this.hasFirstHeaderTarget) {
       this.firstHeaderTarget.hidden = page === 1
       this.firstHeaderTarget.querySelector("[data-page-count]").textContent = this.countLabel(counts[1])
+    }
+
+    const total = Object.values(counts).reduce((sum, count) => sum + count, 0)
+    if (this.hasSummaryTarget) {
+      const questions = this.countLabel(total)
+      this.summaryTarget.textContent = page > 1 ? `${questions} en ${page} páginas` : questions
+    }
+    if (this.hasEmptyTarget) {
+      this.emptyTarget.hidden = this.itemTargets.length > 0
     }
   }
 

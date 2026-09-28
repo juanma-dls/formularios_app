@@ -48,24 +48,24 @@ class FormsController < ApplicationController
   end
 
   def publish
-    if @form.fields.empty?
-      return redirect_to @form, alert: "Agregá al menos un campo antes de publicar."
-    end
-    if @form.effective_spreadsheet_id.blank?
-      return redirect_to @form, alert: "Conectá una planilla de Google antes de publicar."
-    end
+    return redirect_to(@form, alert: "Agregá al menos una pregunta antes de publicar.") if @form.fields.none?(&:input?)
 
-    # Si cambió la planilla desde la última publicación, se empieza en una pestaña nueva
-    if @form.synced_spreadsheet_id != @form.effective_spreadsheet_id
+    if @form.effective_spreadsheet_id.present?
+      # Si cambió la planilla desde la última publicación, se empieza en una pestaña nueva
+      if @form.synced_spreadsheet_id != @form.effective_spreadsheet_id
+        @form.update!(synced_spreadsheet_id: nil, sheet_gid: nil)
+      end
+      unless FormSheetSync.call(@form)
+        return redirect_to @form, alert: "No se pudo preparar la planilla: #{@form.last_sync_error}"
+      end
+    else
+      # Sin planilla: deja de sincronizar aunque antes haya tenido una
       @form.update!(synced_spreadsheet_id: nil, sheet_gid: nil)
     end
 
-    if FormSheetSync.call(@form)
-      @form.update!(status: :published, closed_at: nil)
-      redirect_to @form, notice: "Formulario publicado. Las respuestas se guardan en la pestaña \"#{@form.sheet_title}\"."
-    else
-      redirect_to @form, alert: "No se pudo preparar la planilla: #{@form.last_sync_error}"
-    end
+    @form.update!(status: :published, closed_at: nil)
+    message = @form.sheet_gid ? "Las respuestas también se envían a la pestaña \"#{@form.sheet_title}\"." : "Las respuestas se ven en la sección Respuestas."
+    redirect_to @form, notice: "Formulario publicado. #{message}"
   end
 
   def sync

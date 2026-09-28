@@ -216,3 +216,27 @@ turbo-frame[data-field-id] {
 [data-collapsed] .page-toggle .bi {
   transform: rotate(-90deg);
 }
+
+.responses-table-wrap {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.responses-table {
+  th,
+  td {
+    max-width: 16rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: $light;
+    font-weight: 600;
+    font-size: .85rem;
+  }
+}
