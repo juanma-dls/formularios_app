@@ -3,7 +3,9 @@
 <% invalid = error.present? ? " is-invalid" : "" %>
 <% group = %w[single_choice multiple_choice image_choice].include?(field.field_type) %>
 
-<div class="bg-white rounded border p-4 mb-3<%= ' border-danger' if error %>">
+<div class="bg-white rounded border p-4 mb-3<%= ' border-danger' if error %>"
+     data-live-validation-target="field" data-type="<%= field.field_type %>" data-required="<%= field.required? %>"
+     <%= "data-has-error" if error %>>
   <%= content_tag(group ? :div : :label, id: "#{id}_label", for: (group ? nil : id),
                   class: "form-label fw-semibold d-block mb-1") do %>
     <%= field.label %><% if field.required? %> <span class="text-danger">*</span><% end %>
@@ -78,7 +80,5 @@
     <%= text_field_tag name, value, id: id, maxlength: 255, class: "form-control#{invalid}" %>
   <% end %>
 
-  <% if error %>
-    <div class="text-danger small mt-2"><%= error %></div>
-  <% end %>
+  <div class="text-danger small mt-2" data-role="error" aria-live="polite" <%= "hidden" unless error %>><%= error %></div>
 </div>

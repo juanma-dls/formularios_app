@@ -21,6 +21,10 @@
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    
+    <% if @organization %>
+      <style><%= brand_css(@organization) %></style>
+    <% end %>
   </head>
 
   <body class="bg-light">

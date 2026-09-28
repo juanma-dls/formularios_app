@@ -1,4 +1,6 @@
-<%= turbo_frame_tag @field, data: { field_id: @field.id }, class: "d-block" do %>
+<% page_break = @field.section? && @field.starts_page? %>
+<%= turbo_frame_tag @field, data: { field_id: @field.id, pages_target: "item",
+      page_break: (page_break ? "" : nil), kind: (@field.input? ? "input" : "section") } do %>
   <div class="card mb-2 border-primary">
     <div class="card-body">
       <%= render "form_fields/field_form" %>

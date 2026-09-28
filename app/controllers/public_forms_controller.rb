@@ -38,8 +38,10 @@ class PublicFormsController < ApplicationController
 
   def set_form
     @form = Form.with_attached_terms_document
-            .includes(fields: { options: { image_attachment: :blob } })
-            .find_by!(public_id: params[:public_id])
+                .includes(fields: { options: { image_attachment: :blob } },
+                          area: { organization: [{ logo_attachment: :blob }, { banner_attachment: :blob }] })
+                .find_by!(public_id: params[:public_id])
+    @organization = @form.organization
   end
 
   def answer_params

@@ -5,15 +5,26 @@
   <p class="text-secondary">Tipo de campo: <strong><%= @field.type_name %></strong></p>
 
   <div class="mb-3">
-    <%= f.label :label, class: "form-label" %>
+    <%= f.label :label, (@field.section? ? "Título de la sección" : "Pregunta"), class: "form-label" %>
     <%= f.text_field :label, class: "form-control", required: true, autofocus: true %>
   </div>
 
   <div class="mb-3">
-    <%= f.label :help_text, class: "form-label" %>
-    <%= f.text_field :help_text, class: "form-control", placeholder: "Ej: Barrio Los Olivos" %>
-    <div class="form-text">Opcional. Aparece debajo de la pregunta.</div>
+    <%= f.label :help_text, (@field.section? ? "Descripción" : "Texto de ayuda"), class: "form-label" %>
+    <%= f.text_field :help_text, class: "form-control",
+          placeholder: (@field.section? ? "Ej: Completá los datos de tu domicilio" : "Ej: Barrio Los Olivos") %>
+    <div class="form-text">
+      <%= @field.section? ? "Opcional. Aparece debajo del título de la sección." : "Opcional. Aparece debajo de la pregunta." %>
+    </div>
   </div>
+
+  <% if @field.section? %>
+    <div class="form-check mb-3">
+      <%= f.check_box :starts_page, class: "form-check-input" %>
+      <%= f.label :starts_page, "Empezar una página nueva con esta sección", class: "form-check-label" %>
+      <div class="form-text">Quien responde ve las preguntas hasta acá y toca "Siguiente" para continuar.</div>
+    </div>
+  <% end %>
 
   <% if @field.choice? %>
     <% image = @field.field_type == "image_choice" %>
@@ -37,23 +48,21 @@
       </button>
       <div class="form-text">
         <% if image %>
-          <div class="form-text">
-            Hacé clic en el recuadro de cada opción para elegir su foto (PNG, JPG o WEBP, hasta 5 MB).
-            Con Enter agregás otra opción debajo.
-          </div>
+          Hacé clic en el recuadro de cada opción para elegir su foto (PNG, JPG o WEBP, hasta 5 MB).
+          Con Enter agregás otra opción debajo.
         <% else %>
-          <div class="form-text">
-            Con Enter agregás otra opción debajo. Si pegás una lista con una opción por renglón, se cargan todas juntas.
-          </div>
+          Con Enter agregás otra opción debajo. Si pegás una lista con una opción por renglón, se cargan todas juntas.
         <% end %>
       </div>
     </div>
   <% end %>
 
-  <div class="form-check mb-2">
-    <%= f.check_box :required, class: "form-check-input" %>
-    <%= f.label :required, class: "form-check-label" %>
-  </div>
+  <% unless @field.section? %>
+    <div class="form-check mb-2">
+      <%= f.check_box :required, class: "form-check-input" %>
+      <%= f.label :required, class: "form-check-label" %>
+    </div>
+  <% end %>
 
   <% if FormField::UNIQUE_ALLOWED.include?(@field.field_type) %>
     <div class="form-check mb-3">

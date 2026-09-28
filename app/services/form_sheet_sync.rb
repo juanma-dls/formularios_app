@@ -14,6 +14,7 @@ class FormSheetSync
   # Devuelve true si salió bien; si no, deja el error guardado en el formulario.
   def call
     ensure_tab!
+    prune_unused_columns!
     write_header!
     send_pending!
     @form.update!(last_synced_at: Time.current, last_sync_error: nil)
@@ -24,6 +25,42 @@ class FormSheetSync
   end
 
   private
+
+  def prune_unused_columns!
+    current = Array(@form.sheet_columns)
+    active_keys = @form.fields.select(&:input?).map(&:key)
+    active_keys << Submission::TERMS_KEY if @form.terms_required?
+
+    removable = current.each_index.select do |i|
+      key = current[i]["key"]
+      !active_keys.include?(key) && !pending_data_for?(key) && column_empty?(FIXED_HEADERS.size + i)
+    end
+    return if removable.empty?
+
+    GoogleSheets.delete_columns!(@spreadsheet_id, @form.sheet_gid, removable.map { |i| FIXED_HEADERS.size + i })
+    @form.update!(sheet_columns: current.reject.with_index { |_, i| removable.include?(i) })
+    @columns = nil
+  end
+
+  def pending_data_for?(key)
+    @form.submissions.where(synced_at: nil).any? { |submission| submission.answers[key].present? }
+  end
+
+  def column_empty?(index)
+    letter = column_letter(index)
+    GoogleSheets.column_values(@spreadsheet_id, a1("#{letter}2:#{letter}")).flatten.all?(&:blank?)
+  end
+
+  # 0 → A, 25 → Z, 26 → AA
+  def column_letter(index)
+    name = +""
+    number = index + 1
+    while number.positive?
+      number, remainder = (number - 1).divmod(26)
+      name.prepend((65 + remainder).chr)
+    end
+    name
+  end
 
   def ensure_tab!
     @spreadsheet_id = @form.synced_spreadsheet_id.presence || @form.effective_spreadsheet_id

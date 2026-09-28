@@ -37,31 +37,51 @@
   <% if @areas.any? %>
     <ul class="list-group list-group-flush">
       <% @areas.each do |area| %>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <%= area.name %>
-            <div class="small text-secondary">
+        <li class="list-group-item">
+          <div class="d-flex flex-column flex-md-row gap-2 align-items-md-center">
+            <div class="flex-grow-1 min-w-0">
+              <%= link_to area.name, organization_area_forms_path(@organization, area), class: "fw-semibold text-body" %>
+              <div class="small text-secondary text-truncate">
+                <% if area.spreadsheet_connected? %>
+                  <i class="bi bi-table me-1"></i>Planilla propia:
+                  <%= link_to area.spreadsheet_title, area.spreadsheet_url, target: "_blank", rel: "noopener" %>
+                <% else %>
+                  <i class="bi bi-diagram-3 me-1"></i>Usa la planilla de la organización
+                <% end %>
+              </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-1 flex-shrink-0">
+              <%= link_to organization_area_forms_path(@organization, area), class: "btn btn-sm btn-primary" do %>
+                <i class="bi bi-ui-checks me-1"></i>Formularios
+              <% end %>
+
               <% if area.spreadsheet_connected? %>
-                Planilla propia: <%= link_to area.spreadsheet_title, area.spreadsheet_url, target: "_blank", rel: "noopener" %>
+                <%= button_to organization_area_spreadsheet_connection_path(@organization, area), method: :delete,
+                      class: "btn btn-sm btn-outline-secondary", title: "Desconectar planilla",
+                      aria: { label: "Desconectar planilla" },
+                      form: { data: { turbo_confirm: "¿Desconectar la planilla de esta área?" } } do %>
+                  <i class="bi bi-x-circle"></i><span class="d-none d-md-inline ms-1">Desconectar planilla</span>
+                <% end %>
               <% else %>
-                Usa la planilla de la organización
+                <%= link_to new_organization_area_spreadsheet_connection_path(@organization, area),
+                      class: "btn btn-sm btn-outline-primary", title: "Conectar planilla propia",
+                      aria: { label: "Conectar planilla propia" } do %>
+                  <i class="bi bi-table"></i><span class="d-none d-md-inline ms-1">Planilla propia</span>
+                <% end %>
+              <% end %>
+
+              <%= link_to edit_organization_area_path(@organization, area),
+                    class: "btn btn-sm btn-outline-secondary", title: "Editar área", aria: { label: "Editar área" } do %>
+                <i class="bi bi-pencil"></i><span class="d-none d-md-inline ms-1">Editar</span>
+              <% end %>
+
+              <%= button_to organization_area_path(@organization, area), method: :delete,
+                    class: "btn btn-sm btn-outline-danger", title: "Eliminar área", aria: { label: "Eliminar área" },
+                    form: { data: { turbo_confirm: "¿Eliminar el área #{area.name}?" } } do %>
+                <i class="bi bi-trash"></i><span class="d-none d-md-inline ms-1">Eliminar</span>
               <% end %>
             </div>
-          </div>
-          <div class="d-flex gap-2">
-            <% if area.spreadsheet_connected? %>
-              <%= button_to "Desconectar planilla", organization_area_spreadsheet_connection_path(@organization, area),
-                    method: :delete, class: "btn btn-sm btn-outline-secondary",
-                    form: { data: { turbo_confirm: "¿Desconectar la planilla de esta área?" } } %>
-            <% else %>
-              <%= link_to "Planilla propia", new_organization_area_spreadsheet_connection_path(@organization, area),
-                    class: "btn btn-sm btn-outline-primary" %>
-            <% end %>
-            <%= link_to "Formularios", organization_area_forms_path(@organization, area), class: "btn btn-sm btn-primary" %>
-            <%= link_to "Editar", edit_organization_area_path(@organization, area), class: "btn btn-sm btn-outline-secondary" %>
-            <%= button_to "Eliminar", organization_area_path(@organization, area), method: :delete,
-                  class: "btn btn-sm btn-outline-danger",
-                  form: { data: { turbo_confirm: "¿Eliminar el área #{area.name}?" } } %>
           </div>
         </li>
       <% end %>

@@ -45,6 +45,6 @@ class OrganizationsController < ApplicationController
   end
 
   def organization_params
-    params.expect(organization: [:name])
+    params.expect(organization: [:name, :brand_color, :logo, :banner, :remove_logo, :remove_banner])
   end
 end
