@@ -1,0 +1,18 @@
+<div class="flash-stack" aria-live="polite">
+  <% if notice %>
+    <div class="alert alert-success d-flex gap-2 align-items-start shadow-sm mb-2"
+         data-controller="flash" data-flash-delay-value="5000" data-turbo-temporary>
+      <i class="bi bi-check-circle-fill"></i>
+      <div class="flex-grow-1"><%= notice %></div>
+      <button type="button" class="btn-close btn-sm" aria-label="Cerrar" data-action="flash#dismiss"></button>
+    </div>
+  <% end %>
+  <% if alert %>
+    <div class="alert alert-danger d-flex gap-2 align-items-start shadow-sm mb-2"
+         data-controller="flash" data-flash-delay-value="10000" data-turbo-temporary role="alert">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div class="flex-grow-1"><%= alert %></div>
+      <button type="button" class="btn-close btn-sm" aria-label="Cerrar" data-action="flash#dismiss"></button>
+    </div>
+  <% end %>
+</div>

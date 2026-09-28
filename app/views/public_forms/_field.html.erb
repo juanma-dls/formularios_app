@@ -61,8 +61,13 @@
           <%= radio_button_tag name, option.label, value == option.label,
                 id: "#{id}_#{i}", class: "btn-check", autocomplete: "off" %>
           <label class="btn btn-outline-primary w-100 h-100 p-2" for="<%= id %>_<%= i %>">
-            <div class="bg-light rounded mb-2 d-flex align-items-center justify-content-center text-secondary small"
-                 style="aspect-ratio: 3 / 4">Sin imagen</div>
+            <% if option.image.attached? %>
+              <%= image_tag option.image.variant(:card), alt: option.label, loading: "lazy",
+                    class: "d-block w-100 rounded mb-2", style: "aspect-ratio: 3 / 4; object-fit: cover" %>
+            <% else %>
+              <div class="bg-light rounded mb-2 d-flex align-items-center justify-content-center text-secondary small"
+                  style="aspect-ratio: 3 / 4">Sin imagen</div>
+            <% end %>
             <span class="fw-semibold"><%= option.label %></span>
           </label>
         </div>

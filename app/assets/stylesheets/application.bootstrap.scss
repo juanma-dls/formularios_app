@@ -1,2 +1,176 @@
-@import 'bootstrap/scss/bootstrap';
-@import 'bootstrap-icons/font/bootstrap-icons';
+// Fuente
+@font-face {
+  font-family: "Public Sans";
+  src: url("public-sans-latin-wght-normal.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Tema de Bootstrap
+$font-family-sans-serif: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+$primary:   #0f5c8c;
+$secondary: #5b6b7f;
+$success:   #2e7d4f;
+$danger:    #b93a32;
+$warning:   #c98a0b;
+$info:      #2f7fb5;
+
+$body-bg:       #f3f5f8;
+$body-color:    #1b2433;
+$headings-color: #111a2b;
+$headings-font-weight: 650;
+$border-color:  #dde3ea;
+
+$border-radius:    .5rem;
+$border-radius-sm: .375rem;
+$border-radius-lg: .75rem;
+
+$link-decoration: none;
+$link-hover-decoration: underline;
+
+$btn-font-weight: 500;
+$input-border-color: #cfd7e1;
+$card-cap-bg: #fff;
+$box-shadow-sm: 0 1px 2px rgba(16, 24, 40, .06);
+$breadcrumb-divider: quote("›");
+$brand-accent: #f2a93b;
+
+// Íconos: se cargan desde app/assets/fonts
+$bootstrap-icons-font-src: url("bootstrap-icons.woff2") format("woff2");
+
+@import "bootstrap/scss/bootstrap";
+@import "bootstrap-icons/font/bootstrap-icons";
+
+// Estructura general
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.brand-mark {
+  width: 2rem;
+  height: 2rem;
+  border-radius: .5rem;
+  background: $primary;
+  color: #fff;
+  display: inline-grid;
+  place-items: center;
+  font-size: 1rem;
+}
+
+.navbar-divider {
+  width: 1px;
+  height: 1.5rem;
+  background: $border-color;
+  margin: 0 .75rem 0 .25rem;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    font-size: 1.6rem;
+    margin: 0;
+  }
+}
+
+.page-subtitle {
+  color: $secondary;
+  margin: .25rem 0 0;
+  max-width: 65ch;
+}
+
+.card {
+  box-shadow: $box-shadow-sm;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}
+
+.type-button {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  text-align: left;
+
+  .bi {
+    color: $primary;
+  }
+}
+
+.danger-zone {
+  border-top: 1px solid $border-color;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+}
+
+// Constructor: arrastrar y soltar
+.drag-handle {
+  cursor: grab;
+  user-select: none;
+  color: $secondary;
+}
+
+.sortable-ghost {
+  opacity: .4;
+}
+
+// Editor de opciones con imagen
+.option-image-preview {
+  width: 48px;
+  height: 64px;
+  border: 1px dashed $border-color;
+  border-radius: $border-radius;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .7rem;
+  color: $secondary;
+  text-align: center;
+  overflow: hidden;
+  cursor: pointer;
+  background: $light;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// Mensajes Flash
+.flash-stack {
+  position: fixed;
+  top: 4.5rem;
+  right: 1rem;
+  z-index: 1080;
+  width: min(24rem, calc(100% - 2rem));
+
+  .alert {
+    transition: opacity .2s ease, transform .2s ease;
+  }
+
+  .flash-hiding {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash-stack .alert {
+    transition: none;
+  }
+}

@@ -10,7 +10,35 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_020420) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_043209) do
+  create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
   create_table "areas", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "organization_id", null: false
     t.string "name", null: false
@@ -66,6 +94,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_020420) do
     t.datetime "last_synced_at"
     t.text "last_sync_error"
     t.boolean "captcha_enabled", default: false, null: false
+    t.boolean "terms_required", default: false, null: false
+    t.datetime "closed_at"
+    t.datetime "backup_sent_at"
     t.index ["area_id"], name: "index_forms_on_area_id"
     t.index ["public_id"], name: "index_forms_on_public_id", unique: true
   end
@@ -100,9 +131,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_020420) do
     t.datetime "synced_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "terms_accepted_at"
+    t.string "terms_version"
+    t.datetime "purged_at"
     t.index ["form_id", "synced_at"], name: "index_submissions_on_form_id_and_synced_at"
     t.index ["form_id", "unique_digest"], name: "index_submissions_on_form_id_and_unique_digest", unique: true
     t.index ["form_id"], name: "index_submissions_on_form_id"
+    t.index ["purged_at"], name: "index_submissions_on_purged_at"
   end
 
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -114,6 +149,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_020420) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "areas", "organizations"
   add_foreign_key "field_options", "form_fields"
   add_foreign_key "form_fields", "forms"

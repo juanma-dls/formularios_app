@@ -1,0 +1,7 @@
+<%= turbo_frame_tag @field, data: { field_id: @field.id }, class: "d-block" do %>
+  <div class="card mb-2 border-primary">
+    <div class="card-body">
+      <%= render "form_fields/field_form" %>
+    </div>
+  </div>
+<% end %>

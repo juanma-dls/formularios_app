@@ -27,6 +27,25 @@
                  error: @submission&.field_errors&.dig(field.key) %>
     <% end %>
 
+    <% if @form.terms_required? && @form.terms_document.attached? %>
+      <% terms_error = @submission&.field_errors&.dig(Submission::TERMS_KEY) %>
+      <div class="bg-white rounded border p-4 mb-3<%= ' border-danger' if terms_error %>">
+        <div class="form-check">
+          <%= check_box_tag :accept_terms, "1", params[:accept_terms] == "1",
+                id: "accept_terms", class: "form-check-input", required: true %>
+          <label class="form-check-label" for="accept_terms">
+            Leí y acepto las
+            <%= link_to "bases y condiciones", rails_blob_path(@form.terms_document, disposition: "inline"),
+                  target: "_blank", rel: "noopener" %>
+            <span class="text-danger">*</span>
+          </label>
+        </div>
+        <% if terms_error %>
+          <div class="text-danger small mt-2"><%= terms_error %></div>
+        <% end %>
+      </div>
+    <% end %>
+
     <input type="text" name="website" class="d-none" tabindex="-1" autocomplete="off" aria-hidden="true">
 
    <% unless @preview %>

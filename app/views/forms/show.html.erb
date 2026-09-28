@@ -1,138 +1,158 @@
 <%= render "breadcrumb" %>
 
-<div class="d-flex justify-content-between align-items-start mb-4 gap-3">
+<div class="page-header">
   <div>
-    <h1 class="h3 mb-1"><%= @form.title %> <%= form_status_badge(@form) %></h1>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <h1><%= @form.title %></h1>
+      <%= form_status_badge(@form) %>
+    </div>
     <% if @form.description.present? %>
-      <p class="text-secondary mb-0"><%= @form.description %></p>
+      <p class="page-subtitle"><%= @form.description %></p>
     <% end %>
   </div>
-  <div class="d-flex gap-2 flex-shrink-0">
-    <%= link_to "Editar", edit_form_path(@form), class: "btn btn-outline-secondary" %>
-    <%= button_to "Eliminar", @form, method: :delete, class: "btn btn-outline-danger",
-          form: { data: { turbo_confirm: "Se eliminará el formulario con todos sus campos. ¿Continuar?" } } %>
-  </div>
-</div>
 
-<% source = @form.spreadsheet_source %>
-<div class="card mb-4">
-  <div class="card-body d-flex justify-content-between align-items-center gap-3">
-    <div>
-      <div class="fw-semibold">Planilla de Google</div>
-      <% if source.nil? %>
-        <span class="text-danger">
-          Ni el formulario, ni el área, ni la organización tienen una planilla conectada.
-          No vas a poder publicarlo hasta conectar una.
-        </span>
-      <% else %>
-        <%= link_to source.spreadsheet_title, source.spreadsheet_url, target: "_blank", rel: "noopener" %>
-        <div class="small text-secondary">
-          <% case source
-             when Form %>Planilla propia de este formulario
-          <% when Area %>Heredada del área <%= @area.name %>
-          <% else %>Heredada de la organización<% end %>
-          <% if @form.sheet_title.present? %>, pestaña "<%= @form.sheet_title %>"<% end %>
-        </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <%= link_to preview_form_path(@form), class: "btn btn-outline-secondary", target: "_blank" do %>
+      <i class="bi bi-eye me-1"></i>Vista previa
+    <% end %>
+    <%= link_to edit_form_path(@form), class: "btn btn-outline-secondary" do %>
+      <i class="bi bi-gear me-1"></i>Configuración
+    <% end %>
+    <% if @form.published? %>
+      <%= button_to close_form_path(@form), method: :patch, class: "btn btn-outline-danger",
+            form: { data: { turbo_confirm: "El formulario va a dejar de recibir respuestas. ¿Continuar?" } } do %>
+        <i class="bi bi-stop-circle me-1"></i>Cerrar
       <% end %>
-    </div>
-    <div class="flex-shrink-0">
-      <% if @form.spreadsheet_connected? %>
-        <%= button_to "Desconectar", form_spreadsheet_connection_path(@form), method: :delete,
-              class: "btn btn-sm btn-outline-secondary",
-              form: { data: { turbo_confirm: "¿Desconectar? El formulario va a volver a usar la planilla del área." } } %>
-      <% else %>
-        <%= link_to "Usar planilla propia", new_form_spreadsheet_connection_path(@form), class: "btn btn-sm btn-outline-primary" %>
+    <% else %>
+      <%= button_to publish_form_path(@form), method: :patch, class: "btn btn-success" do %>
+        <i class="bi bi-send me-1"></i><%= @form.closed? ? "Reabrir" : "Publicar" %>
       <% end %>
-    </div>
+    <% end %>
   </div>
 </div>
 
 <div class="card mb-4">
-  <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-    <div class="flex-grow-1">
-      <div class="fw-semibold">Enlace público</div>
-      <% if @form.published? %>
-        <input class="form-control font-monospace mt-1" value="<%= public_form_url(@form.public_id) %>"
-               readonly data-controller="select-all" data-action="click->select-all#select">
-      <% elsif @form.closed? %>
-        <span class="text-secondary">El formulario está cerrado y no recibe respuestas.</span>
-      <% else %>
-        <span class="text-secondary">Publicalo para obtener el enlace que vas a compartir.</span>
-      <% end %>
-    </div>
-    <div class="d-flex gap-2 flex-shrink-0">
-      <%= link_to "Vista previa", preview_form_path(@form), class: "btn btn-outline-secondary", target: "_blank" %>
-      <% if @form.published? %>
-        <%= button_to "Cerrar", close_form_path(@form), method: :patch, class: "btn btn-outline-danger",
-              form: { data: { turbo_confirm: "El formulario va a dejar de recibir respuestas. ¿Continuar?" } } %>
-      <% else %>
-        <%= button_to (@form.closed? ? "Reabrir" : "Publicar"), publish_form_path(@form),
-              method: :patch, class: "btn btn-success" %>
-      <% end %>
-    </div>
-  </div>
-</div>
-
-<% if @form.sheet_gid %>
-  <% pending = @form.submissions.where(synced_at: nil).count %>
-  <div class="card mb-4">
-    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
-      <div>
-        <div class="fw-semibold">Sincronización</div>
-        <div class="small text-secondary">
-          <%= pluralize(@form.submissions.count, "respuesta", plural: "respuestas") %> en total,
-          <%= pending %> pendientes de enviar a la planilla.
-          Última sincronización: <%= @form.last_synced_at ? l(@form.last_synced_at, format: :short) : "todavía no" %>.
+  <div class="list-group list-group-flush">
+    <div class="list-group-item py-3">
+      <div class="row align-items-center g-2">
+        <div class="col-md-3 fw-semibold"><i class="bi bi-link-45deg me-1 text-secondary"></i>Enlace público</div>
+        <div class="col-md-9">
+          <% if @form.published? %>
+            <input class="form-control font-monospace" value="<%= public_form_url(@form.public_id) %>" readonly
+                   data-controller="select-all" data-action="click->select-all#select">
+          <% elsif @form.closed? %>
+            <span class="text-secondary">El formulario está cerrado y no recibe respuestas.</span>
+          <% else %>
+            <span class="text-secondary">Publicalo para obtener el enlace que vas a compartir.</span>
+          <% end %>
         </div>
-        <% if @form.last_sync_error.present? %>
-          <div class="small text-danger mt-1"><%= @form.last_sync_error %></div>
-        <% end %>
       </div>
-      <%= button_to "Sincronizar ahora", sync_form_path(@form), method: :post,
-            class: "btn btn-sm btn-outline-primary" %>
     </div>
-  </div>
-<% end %>
 
-<div class="card">
-  <div class="card-header bg-white fw-semibold">Campos</div>
+    <div class="list-group-item py-3">
+      <div class="row align-items-center g-2">
+        <div class="col-md-3 fw-semibold"><i class="bi bi-table me-1 text-secondary"></i>Planilla</div>
+        <div class="col-md-6">
+          <% if (source = @form.spreadsheet_source) %>
+            <%= link_to source.spreadsheet_title, source.spreadsheet_url, target: "_blank", rel: "noopener" %>
+            <div class="small text-secondary"><%= spreadsheet_source_text(@form) %></div>
+          <% else %>
+            <span class="text-danger">Sin planilla conectada. No se puede publicar hasta conectar una.</span>
+          <% end %>
+          <%= link_to "¿Cómo funciona?", help_spreadsheets_path(anchor: "donde"), class: "small", target: "_blank" %>
+        </div>
+        <div class="col-md-3 text-md-end">
+          <% if @form.spreadsheet_connected? %>
+            <%= button_to "Desconectar", form_spreadsheet_connection_path(@form), method: :delete,
+                  class: "btn btn-sm btn-outline-secondary",
+                  form: { data: { turbo_confirm: "¿Desconectar? El formulario va a volver a usar la planilla del área." } } %>
+          <% else %>
+            <%= link_to "Usar planilla propia", new_form_spreadsheet_connection_path(@form), class: "btn btn-sm btn-outline-primary" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
 
-  <% if @fields.any? %>
-    <ul class="list-group list-group-flush">
-      <% @fields.each_with_index do |field, i| %>
-        <li class="list-group-item d-flex justify-content-between align-items-start gap-3">
-          <div>
-            <div class="fw-semibold"><%= field.label %></div>
-            <div class="d-flex flex-wrap gap-1 mt-1">
-              <span class="badge text-bg-light border"><%= field.type_name %></span>
-              <% if field.required? %><span class="badge text-bg-light border">Obligatorio</span><% end %>
-              <% if field.unique_answer? %><span class="badge text-bg-primary">Sin repetidos</span><% end %>
+    <% if @form.sheet_gid %>
+      <% pending = @form.submissions.where(synced_at: nil).count %>
+      <div class="list-group-item py-3">
+        <div class="row align-items-center g-2">
+          <div class="col-md-3 fw-semibold"><i class="bi bi-arrow-repeat me-1 text-secondary"></i>Sincronización</div>
+          <div class="col-md-6 small">
+            <div>
+              <%= pluralize(@form.submissions.count, "respuesta", plural: "respuestas") %>,
+              <%= pending.zero? ? "todas en la planilla" : "#{pending} pendientes de enviar" %>
             </div>
-            <% if field.choice? %>
-              <div class="small text-secondary mt-1"><%= field.options.map(&:label).join(", ") %></div>
+            <div class="text-secondary">
+              Última sincronización: <%= @form.last_synced_at ? l(@form.last_synced_at, format: :short) : "todavía no" %>
+            </div>
+            <% if @form.last_sync_error.present? %>
+              <div class="text-danger mt-1"><i class="bi bi-exclamation-circle me-1"></i><%= @form.last_sync_error %></div>
             <% end %>
           </div>
-          <div class="d-flex gap-1 flex-shrink-0">
-            <%= button_to "↑", move_up_form_form_field_path(@form, field), method: :patch,
-                  class: "btn btn-sm btn-outline-secondary", disabled: i.zero?, title: "Subir" %>
-            <%= button_to "↓", move_down_form_form_field_path(@form, field), method: :patch,
-                  class: "btn btn-sm btn-outline-secondary", disabled: i == @fields.size - 1, title: "Bajar" %>
-            <%= link_to "Editar", edit_form_form_field_path(@form, field), class: "btn btn-sm btn-outline-secondary" %>
-            <%= button_to "Eliminar", form_form_field_path(@form, field), method: :delete,
-                  class: "btn btn-sm btn-outline-danger",
-                  form: { data: { turbo_confirm: "¿Eliminar el campo \"#{field.label}\"?" } } %>
+          <div class="col-md-3 text-md-end">
+            <%= button_to "Sincronizar ahora", sync_form_path(@form), method: :post, class: "btn btn-sm btn-outline-primary" %>
           </div>
-        </li>
-      <% end %>
-    </ul>
-  <% else %>
-    <div class="card-body text-secondary">Todavía no tiene campos. Elegí un tipo abajo para agregar el primero.</div>
-  <% end %>
-
-  <div class="card-footer bg-white">
-    <%= form_with url: new_form_form_field_path(@form), method: :get, class: "d-flex gap-2" do |f| %>
-      <%= f.select :field_type, FormField::TYPES.invert, {}, class: "form-select", style: "max-width: 20rem" %>
-      <%= f.submit "Agregar campo", class: "btn btn-primary", name: nil %>
+        </div>
+      </div>
     <% end %>
   </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <h2 class="h5 mb-3">Preguntas</h2>
+
+    <% if @fields.empty? %>
+      <div id="fields_empty" class="card card-body text-secondary mb-2">
+        Todavía no hay preguntas. Elegí un tipo en el panel para agregar la primera, o sumá un bloque completo.
+      </div>
+    <% end %>
+
+    <div id="fields" data-controller="sortable" data-sortable-url-value="<%= reorder_form_form_fields_path(@form) %>">
+      <%= render partial: "form_fields/form_field", collection: @fields, as: :field %>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="position-sticky" style="top: 1rem">
+      <div class="card mb-3">
+        <div class="card-header bg-white fw-semibold">Agregar pregunta</div>
+        <div class="card-body">
+          <div class="row row-cols-2 g-2">
+            <% FormField::TYPES.each do |type, name| %>
+              <%= button_to form_form_fields_path(@form), params: { "form_field[field_type]" => type },
+                    form_class: "col", class: "btn btn-sm btn-outline-secondary w-100 h-100 type-button" do %>
+                <i class="bi <%= FormField::ICONS[type] %>"></i><span><%= name %></span>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header bg-white fw-semibold">Agregar bloque</div>
+        <div class="list-group list-group-flush">
+          <% FieldPresets::PRESETS.each do |key, preset| %>
+            <%= button_to apply_preset_form_form_fields_path(@form), params: { preset: key },
+                  class: "list-group-item list-group-item-action text-start border-0" do %>
+              <div class="fw-semibold"><%= preset[:name] %></div>
+              <div class="small text-secondary"><%= preset[:description] %></div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="danger-zone d-flex flex-wrap justify-content-between align-items-center gap-3">
+  <div>
+    <div class="fw-semibold">Eliminar formulario</div>
+    <div class="small text-secondary">Se borran sus preguntas y sus respuestas en la app. La planilla de Google no se modifica.</div>
+  </div>
+  <%= button_to @form, method: :delete, class: "btn btn-outline-danger",
+        form: { data: { turbo_confirm: "Se eliminará el formulario con todas sus preguntas y respuestas. ¿Continuar?" } } do %>
+    <i class="bi bi-trash me-1"></i>Eliminar formulario
+  <% end %>
 </div>

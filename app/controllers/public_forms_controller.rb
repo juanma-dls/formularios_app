@@ -22,7 +22,7 @@ class PublicFormsController < ApplicationController
       return render :show, status: :unprocessable_content
     end
 
-    @submission = Submission.build_from(@form, @values)
+    @submission = Submission.build_from(@form, @values, accept_terms: params[:accept_terms] == "1")
 
     if @submission.save
       redirect_to public_form_thanks_path(@form.public_id)
@@ -37,7 +37,9 @@ class PublicFormsController < ApplicationController
   private
 
   def set_form
-    @form = Form.includes(fields: :options).find_by!(public_id: params[:public_id])
+    @form = Form.with_attached_terms_document
+            .includes(fields: { options: { image_attachment: :blob } })
+            .find_by!(public_id: params[:public_id])
   end
 
   def answer_params

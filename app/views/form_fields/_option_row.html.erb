@@ -1,0 +1,36 @@
+<% option = of.object %>
+<% destroyed = option.marked_for_destruction? %>
+<div class="option-row d-flex align-items-center gap-2 mb-2<%= ' d-none' if destroyed %>">
+  <span class="drag-handle text-secondary" title="Arrastrar para reordenar">⋮⋮</span>
+
+  <% if option.persisted? %>
+    <%= of.hidden_field :id, data: { role: "id" } %>
+  <% end %>
+  <%= of.hidden_field :position, data: { role: "position" } %>
+  <%= of.hidden_field :_destroy, value: (destroyed ? "1" : "0"), data: { role: "destroy" } %>
+
+  <% if image %>
+    <%= of.hidden_field :remove_image, value: "0", data: { role: "remove-image" } %>
+    <label class="flex-shrink-0 mb-0" title="Elegir imagen">
+      <span class="option-image-preview" data-role="preview">
+        <% if option.image.attachment&.persisted? %>
+          <%= image_tag option.image.variant(:thumb), alt: "" %>
+        <% else %>
+          + Imagen
+        <% end %>
+      </span>
+      <%= of.file_field :image, accept: FieldOption::IMAGE_TYPES.join(","), class: "d-none",
+            data: { action: "change->options-editor#preview" } %>
+    </label>
+  <% end %>
+
+  <%= of.text_field :label, class: "form-control", placeholder: "Texto de la opción",
+        data: { role: "label", action: "keydown->options-editor#keydown paste->options-editor#paste" } %>
+
+  <% if image %>
+    <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0"
+            data-action="options-editor#removeImage" title="Quitar imagen">Sin imagen</button>
+  <% end %>
+  <button type="button" class="btn btn-sm btn-outline-danger flex-shrink-0"
+          data-action="options-editor#remove" title="Eliminar opción">✕</button>
+</div>

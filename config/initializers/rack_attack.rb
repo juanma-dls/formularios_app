@@ -10,12 +10,12 @@ class Rack::Attack
   end
 
   throttle("public_forms/ip/minute",
-           limit: ENV.fetch("PUBLIC_FORM_LIMIT_PER_MINUTE", 20).to_i, period: 1.minute) do |req|
+           limit: ENV.fetch("PUBLIC_FORM_LIMIT_PER_MINUTE", 15).to_i, period: 1.minute) do |req|
     req.ip if req.post? && req.path.match?(PUBLIC_FORM_POST)
   end
 
   throttle("public_forms/ip/hour",
-           limit: ENV.fetch("PUBLIC_FORM_LIMIT_PER_HOUR", 300).to_i, period: 1.hour) do |req|
+           limit: ENV.fetch("PUBLIC_FORM_LIMIT_PER_HOUR", 150).to_i, period: 1.hour) do |req|
     req.ip if req.post? && req.path.match?(PUBLIC_FORM_POST)
   end
 

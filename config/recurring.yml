@@ -12,8 +12,14 @@ development:
   sync_pending_submissions:
     class: SyncPendingSubmissionsJob
     schedule: every 30 seconds
+  purge_synced_submissions:
+    class: PurgeSyncedSubmissionsJob
+    schedule: every day at 3am
 
 production:
   sync_pending_submissions:
     class: SyncPendingSubmissionsJob
     schedule: every 30 seconds
+  purge_synced_submissions:
+    class: PurgeSyncedSubmissionsJob
+    schedule: every day at 3am

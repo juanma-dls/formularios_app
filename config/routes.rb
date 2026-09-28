@@ -21,10 +21,13 @@ Rails.application.routes.draw do
 
     resource :spreadsheet_connection, only: %i[new create destroy]
 
-    resources :form_fields, path: "fields", except: %i[index show] do
+    resources :form_fields, path: "fields", only: %i[create edit update destroy] do
+      collection do
+        patch :reorder
+        post :apply_preset
+      end
       member do
-        patch :move_up
-        patch :move_down
+        post :duplicate
       end
     end
   end
@@ -32,4 +35,5 @@ Rails.application.routes.draw do
   get  "f/:public_id",         to: "public_forms#show",   as: :public_form
   post "f/:public_id",         to: "public_forms#create"
   get  "f/:public_id/gracias", to: "public_forms#thanks", as: :public_form_thanks
+  get "ayuda/planillas", to: "help#spreadsheets", as: :help_spreadsheets
 end

@@ -16,12 +16,18 @@
       </li>
       <li>Copiá el enlace de la planilla desde la barra del navegador y pegalo acá abajo.</li>
     </ol>
+
+    <div class="small mt-3">
+      <%= link_to help_spreadsheets_path, target: "_blank" do %>
+        <i class="bi bi-question-circle me-1"></i>¿Cómo funciona la vinculación de planillas?
+      <% end %>
+    </div>
   </div>
 </div>
 
 <div class="card">
   <div class="card-body">
-   <%= form_with url: (@form ? form_spreadsheet_connection_path(@form) : polymorphic_path([@organization, @area, :spreadsheet_connection].compact)), method: :post do |f| %>
+    <%= form_with url: (@form ? form_spreadsheet_connection_path(@form) : polymorphic_path([@organization, @area, :spreadsheet_connection].compact)), method: :post do |f| %>
       <div class="mb-3">
         <%= f.label :spreadsheet_url, "Enlace de la planilla", class: "form-label" %>
         <%= f.text_field :spreadsheet_url, value: params[:spreadsheet_url], class: "form-control",

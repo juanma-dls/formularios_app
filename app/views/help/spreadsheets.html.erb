@@ -1,0 +1,228 @@
+<% content_for :title, "Cómo funcionan las planillas" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="page-header">
+      <div>
+        <h1>Cómo funcionan las planillas de Google</h1>
+        <p class="page-subtitle">
+          Dónde se guardan las respuestas de cada formulario, cómo conectar una planilla y qué pasa cuando la cambiás.
+        </p>
+      </div>
+    </div>
+
+    <nav class="nav nav-pills small gap-1 mb-4">
+      <a class="nav-link border" href="#donde">Dónde se guardan</a>
+      <a class="nav-link border" href="#conectar">Cómo conectar</a>
+      <a class="nav-link border" href="#casos">Qué conviene</a>
+      <a class="nav-link border" href="#cambios">Cambiar de planilla</a>
+      <a class="nav-link border" href="#pestana">Cuidados</a>
+      <a class="nav-link border" href="#columnas">Columnas</a>
+    </nav>
+
+    <section id="donde" class="card mb-4">
+      <div class="card-body">
+        <h2 class="h5">Dónde se guardan las respuestas</h2>
+        <p>
+          Cada formulario guarda sus respuestas en una planilla de Google. Para saber cuál usar,
+          la app busca en este orden y se queda con la primera que tenga una planilla conectada:
+        </p>
+
+        <div class="row g-2 align-items-center text-center my-3">
+          <div class="col-md">
+            <div class="border rounded p-3 bg-light h-100">
+              <i class="bi bi-ui-checks fs-4 text-primary"></i>
+              <div class="fw-semibold mt-1">1. El formulario</div>
+              <div class="small text-secondary">Si tiene planilla propia</div>
+            </div>
+          </div>
+          <div class="col-md-auto"><i class="bi bi-arrow-right fs-4 text-secondary d-none d-md-inline"></i></div>
+          <div class="col-md">
+            <div class="border rounded p-3 bg-light h-100">
+              <i class="bi bi-diagram-3 fs-4 text-primary"></i>
+              <div class="fw-semibold mt-1">2. Su área</div>
+              <div class="small text-secondary">Si el formulario no tiene</div>
+            </div>
+          </div>
+          <div class="col-md-auto"><i class="bi bi-arrow-right fs-4 text-secondary d-none d-md-inline"></i></div>
+          <div class="col-md">
+            <div class="border rounded p-3 bg-light h-100">
+              <i class="bi bi-building fs-4 text-primary"></i>
+              <div class="fw-semibold mt-1">3. La organización</div>
+              <div class="small text-secondary">Si el área tampoco tiene</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="mb-0">
+          Aunque varios formularios compartan la misma planilla, cada uno escribe en su propia pestaña,
+          que se crea sola al publicarlo y lleva el nombre del formulario. Las respuestas llegan a la planilla
+          unos 30 segundos después de enviadas.
+        </p>
+      </div>
+    </section>
+
+    <section id="conectar" class="card mb-4">
+      <div class="card-body">
+        <h2 class="h5">Cómo conectar una planilla</h2>
+        <ol class="mb-3">
+          <li class="mb-2">
+            Creá una planilla nueva en <a href="https://sheets.new" target="_blank" rel="noopener">Google Sheets</a>
+            con la cuenta de Google que va a guardar los datos. Esa cuenta es la dueña de las respuestas.
+          </li>
+          <li class="mb-2">
+            Tocá <strong>Compartir</strong> y agregá este email como <strong>Editor</strong>. Podés desmarcar
+            "Notificar a las personas".
+            <% if @service_account_email %>
+              <input class="form-control font-monospace mt-2" value="<%= @service_account_email %>" readonly
+                     data-controller="select-all" data-action="click->select-all#select">
+            <% end %>
+          </li>
+          <li>
+            Copiá el enlace de la planilla, tocá <strong>Conectar</strong> en la organización, el área o el formulario,
+            y pegalo. La app verifica en el momento que puede escribir.
+          </li>
+        </ol>
+        <div class="alert alert-info small mb-0">
+          <i class="bi bi-info-circle me-1"></i>
+          Compartirla como "Lector" o "Comentador" no alcanza: la app necesita permiso de Editor para crear
+          la pestaña y agregar filas.
+        </div>
+      </div>
+    </section>
+
+    <section id="casos" class="mb-4">
+      <h2 class="h5 mb-3">Qué conviene en cada caso</h2>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <i class="bi bi-building fs-4 text-primary"></i>
+              <h3 class="h6 mt-2">Una planilla para toda la organización</h3>
+              <p class="small mb-0">
+                Conectala en la organización y no conectes nada en áreas ni formularios. Todos los formularios
+                tienen su pestaña en esa planilla. Conviene cuando un solo equipo administra todo.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <i class="bi bi-diagram-3 fs-4 text-primary"></i>
+              <h3 class="h6 mt-2">Una planilla por área</h3>
+              <p class="small mb-0">
+                Conectá una en cada área. Así podés compartir la planilla con el equipo de un área sin que vea
+                los datos de las demás. Las áreas sin planilla usan la de la organización.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <i class="bi bi-ui-checks fs-4 text-primary"></i>
+              <h3 class="h6 mt-2">Una planilla propia para un formulario</h3>
+              <p class="small mb-0">
+                Para votaciones masivas o datos que tiene que ver otra gente. Una planilla admite unas
+                650.000 respuestas sumando todas sus pestañas, así que un formulario muy grande conviene tenerlo aparte.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="cambios" class="card mb-4">
+      <div class="card-body">
+        <h2 class="h5">Qué pasa si cambiás la planilla</h2>
+        <p>
+          Con un formulario publicado no se puede cambiar su planilla: primero hay que cerrarlo. El cambio se aplica
+          recién al volver a publicarlo con <strong>Reabrir</strong>; hasta entonces, las respuestas pendientes
+          siguen yendo a la planilla anterior.
+        </p>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr><th>Al reabrir el formulario…</th><th>Qué pasa</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>La planilla que le corresponde es la misma que usaba</td>
+                <td>Sigue en la misma pestaña, con todas sus respuestas. No se duplica nada.</td>
+              </tr>
+              <tr>
+                <td>Le corresponde una planilla distinta</td>
+                <td>
+                  Se crea una pestaña nueva en la planilla nueva y se copian todas las respuestas, desde la primera.
+                  La pestaña de la planilla anterior queda como una copia que ya no se actualiza.
+                </td>
+              </tr>
+              <tr>
+                <td>Cambió la planilla del área o de la organización</td>
+                <td>
+                  Los formularios publicados siguen escribiendo en la anterior. Pasan a la nueva cuando los cerrás
+                  y los volvés a abrir.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="pestana" class="mb-4">
+      <h2 class="h5 mb-3">Cuidados con la pestaña de un formulario</h2>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="card h-100 border-success-subtle">
+            <div class="card-body">
+              <h3 class="h6 text-success"><i class="bi bi-check-circle me-1"></i>Se puede sin problema</h3>
+              <ul class="small mb-0">
+                <li>Renombrar la pestaña: la app la sigue encontrando.</li>
+                <li>Ordenar, filtrar y dar formato a las filas.</li>
+                <li>Agregar otras pestañas con cálculos o gráficos.</li>
+                <li>Compartir la planilla con quien la necesite, idealmente como Lector.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card h-100 border-danger-subtle">
+            <div class="card-body">
+              <h3 class="h6 text-danger"><i class="bi bi-x-circle me-1"></i>Evitá</h3>
+              <ul class="small mb-0">
+                <li>
+                  Insertar, borrar o mover columnas: la app escribe cada respuesta en una columna fija,
+                  y las respuestas nuevas quedarían corridas.
+                </li>
+                <li>Editar la primera fila: los encabezados se reescriben solos.</li>
+                <li>Borrar filas: las respuestas borradas no se vuelven a enviar.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="small text-secondary mt-3 mb-0">
+        Si alguien borra la pestaña, la app la vuelve a crear con todas las respuestas. Si le sacan el permiso a la app,
+        las respuestas quedan guardadas y el formulario muestra el error; al devolverle el permiso de Editor, se envían solas.
+      </p>
+    </section>
+
+    <section id="columnas" class="card mb-4">
+      <div class="card-body">
+        <h2 class="h5">Cómo se arman las columnas</h2>
+        <p>
+          La pestaña empieza con <strong>ID</strong> (el número de cada respuesta) y <strong>Fecha y hora</strong>,
+          y sigue con una columna por pregunta. Si el formulario pide aceptar bases y condiciones, se suma una columna
+          con la fecha en que se aceptaron.
+        </p>
+        <p class="mb-0">
+          Si agregás una pregunta, su columna se suma al final. Si la renombrás, cambia el encabezado. Si la borrás,
+          su columna queda con las respuestas que ya tenía. Reordenar las preguntas cambia el orden en el formulario,
+          pero no mueve las columnas, para no desordenar los datos existentes.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>

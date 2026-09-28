@@ -1,8 +1,6 @@
 class Submission < ApplicationRecord
-  belongs_to :form
-end
-class Submission < ApplicationRecord
   DUPLICATE_MESSAGE = "Ya se registró una respuesta con este dato.".freeze
+  TERMS_KEY = "__terms".freeze
 
   belongs_to :form
 
@@ -13,8 +11,11 @@ class Submission < ApplicationRecord
     OpenSSL::HMAC.hexdigest("SHA256", Rails.application.secret_key_base, "#{form_id}:#{value}")
   end
 
-  def self.build_from(form, raw)
-    new(form: form).tap { |s| s.assign_raw(raw) }
+  def self.build_from(form, raw, accept_terms: false)
+    new(form: form).tap do |submission|
+      submission.assign_raw(raw)
+      submission.register_terms(accept_terms)
+    end
   end
 
   def field_errors
@@ -44,6 +45,17 @@ class Submission < ApplicationRecord
   rescue ActiveRecord::RecordNotUnique
     field_errors[unique_field.key] = DUPLICATE_MESSAGE
     false
+  end
+
+  def register_terms(accepted)
+    return unless form.terms_required?
+
+    if accepted
+      self.terms_accepted_at = Time.current
+      self.terms_version = form.terms_document.blob.checksum
+    else
+      field_errors[TERMS_KEY] = "Para enviar tenés que aceptar las bases y condiciones."
+    end
   end
 
   private

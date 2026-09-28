@@ -20,7 +20,7 @@ class FormsController < ApplicationController
   end
 
   def show
-    @fields = @form.fields.includes(:options)
+    @fields = @form.fields.includes(options: { image_attachment: :blob })
   end
 
   def edit
@@ -53,7 +53,7 @@ class FormsController < ApplicationController
     end
 
     if FormSheetSync.call(@form)
-      @form.published!
+      @form.update!(status: :published, closed_at: nil, backup_sent_at: nil)
       redirect_to @form, notice: "Formulario publicado. Las respuestas se guardan en la pestaña \"#{@form.sheet_title}\"."
     else
       redirect_to @form, alert: "No se pudo preparar la planilla: #{@form.last_sync_error}"
@@ -66,7 +66,7 @@ class FormsController < ApplicationController
   end
 
   def close
-    @form.closed!
+    @form.update!(status: :closed, closed_at: Time.current, backup_sent_at: nil)
     redirect_to @form, notice: "Formulario cerrado. Ya no recibe respuestas."
   end
 
@@ -90,6 +90,6 @@ class FormsController < ApplicationController
   end
 
   def form_params
-    params.expect(form: [:title, :description, :success_message, :captcha_enabled])
+    params.expect(form: [:title, :description, :success_message, :captcha_enabled, :terms_required, :terms_document])
   end
 end

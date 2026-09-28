@@ -31,3 +31,8 @@ es:
         unique_answer: No permitir respuestas repetidas
         options_text: Opciones
       captcha_enabled: Verificación anti-bots
+      form_field/options:
+        label: Texto de la opción
+        image: Imagen
+      terms_required: Bases y condiciones
+      terms_document: PDF de bases y condiciones

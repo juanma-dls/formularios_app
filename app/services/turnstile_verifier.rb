@@ -17,18 +17,36 @@ class TurnstileVerifier
     end
 
     def verify(token, remote_ip)
-      return false if token.blank?
+      if token.blank?
+        Rails.logger.warn("Turnstile: no llegó el token (el widget no se cargó o está fuera del formulario)")
+        return false
+      end
+
+      payload = { secret: secret_key, response: token }
+      payload[:remoteip] = remote_ip if public_ip?(remote_ip)
+
+      request = Net::HTTP::Post.new(URL, "Content-Type" => "application/json")
+      request.body = payload.to_json
 
       response = Net::HTTP.start(URL.host, URL.port, use_ssl: true, open_timeout: 3, read_timeout: 5) do |http|
-        http.post(URL.path, URI.encode_www_form(secret: secret_key, response: token, remoteip: remote_ip))
+        http.request(request)
       end
-      JSON.parse(response.body)["success"] == true
+      body = JSON.parse(response.body)
+      Rails.logger.warn("Turnstile rechazó el token: #{body['error-codes'].inspect} (HTTP #{response.code})") unless body["success"]
+      body["success"] == true
     rescue StandardError => e
       Rails.logger.warn("Turnstile no respondió: #{e.class}: #{e.message}")
       false
     end
 
     private
+
+    def public_ip?(ip)
+      address = IPAddr.new(ip.to_s)
+      !(address.loopback? || address.private? || address.link_local?)
+    rescue IPAddr::InvalidAddressError
+      false
+    end
 
     def secret_key
       ENV["TURNSTILE_SECRET_KEY"].presence ||

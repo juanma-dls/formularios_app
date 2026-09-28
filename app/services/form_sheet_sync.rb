@@ -42,7 +42,7 @@ class FormSheetSync
       gid = GoogleSheets.add_sheet!(@spreadsheet_id, @title)
       @form.update!(synced_spreadsheet_id: @spreadsheet_id, sheet_gid: gid,
                     sheet_title: @title, sheet_columns: nil)
-      @form.submissions.update_all(synced_at: nil)
+      @form.submissions.where(purged_at: nil).update_all(synced_at: nil)
     end
   end
 
@@ -71,13 +71,24 @@ class FormSheetSync
         existing = cols.find { |c| c["key"] == field.key }
         existing ? existing["label"] = field.label : cols << { "key" => field.key, "label" => field.label }
       end
+
+      if @form.terms_required? && cols.none? { |c| c["key"] == Submission::TERMS_KEY }
+        cols << { "key" => Submission::TERMS_KEY, "label" => "Aceptó bases y condiciones" }
+      end
+
       cols
     end
   end
 
   def row_for(submission)
     [submission.id, submission.created_at.in_time_zone.strftime("%Y-%m-%d %H:%M:%S")] +
-      columns.map { |c| cell(submission.answers[c["key"]]) }
+      columns.map do |c|
+        if c["key"] == Submission::TERMS_KEY
+          submission.terms_accepted_at&.in_time_zone&.strftime("%Y-%m-%d %H:%M:%S").to_s
+        else
+          cell(submission.answers[c["key"]])
+        end
+      end
   end
 
   # Evita que un valor que empieza con =, +, - o @ se interprete como fórmula

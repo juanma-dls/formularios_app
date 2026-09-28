@@ -1,11 +1,10 @@
 <nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><%= link_to "Organizaciones", organizations_path %></li>
-    <li class="breadcrumb-item"><%= link_to @organization.name, @organization %></li>
+  <ol class="breadcrumb small">
     <% if @form&.persisted? %>
       <li class="breadcrumb-item"><%= link_to @area.name, organization_area_forms_path(@organization, @area) %></li>
       <li class="breadcrumb-item active"><%= @form.title_was %></li>
     <% else %>
+      <li class="breadcrumb-item"><%= link_to "Áreas", @organization %></li>
       <li class="breadcrumb-item active"><%= @area.name %></li>
     <% end %>
   </ol>

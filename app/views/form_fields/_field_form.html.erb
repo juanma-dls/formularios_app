@@ -1,4 +1,4 @@
-<%= form_with model: [@form, @field] do |f| %>
+<%= form_with model: [@form, @field], multipart: true do |f| %>
   <%= render "shared/errors", model: @field %>
   <%= f.hidden_field :field_type if @field.new_record? %>
 
@@ -16,12 +16,36 @@
   </div>
 
   <% if @field.choice? %>
-    <div class="mb-3">
-      <%= f.label :options_text, class: "form-label" %>
-      <%= f.text_area :options_text, rows: 8, class: "form-control" %>
+    <% image = @field.field_type == "image_choice" %>
+    <div class="mb-3" data-controller="options-editor">
+      <label class="form-label">Opciones</label>
+
+      <div data-options-editor-target="list">
+        <%= f.fields_for :options, @field.options, include_id: false do |of| %>
+          <%= render "form_fields/option_row", of: of, image: image %>
+        <% end %>
+      </div>
+
+      <template data-options-editor-target="template">
+        <%= f.fields_for :options, FieldOption.new, child_index: "NEW_OPTION", include_id: false do |of| %>
+          <%= render "form_fields/option_row", of: of, image: image %>
+        <% end %>
+      </template>
+
+      <button type="button" class="btn btn-sm btn-outline-primary" data-action="options-editor#add">
+        Agregar opción
+      </button>
       <div class="form-text">
-        Una opción por línea.
-        <% if @field.field_type == "image_choice" %>La imagen de cada opción se carga en un paso siguiente.<% end %>
+        <% if image %>
+          <div class="form-text">
+            Hacé clic en el recuadro de cada opción para elegir su foto (PNG, JPG o WEBP, hasta 5 MB).
+            Con Enter agregás otra opción debajo.
+          </div>
+        <% else %>
+          <div class="form-text">
+            Con Enter agregás otra opción debajo. Si pegás una lista con una opción por renglón, se cargan todas juntas.
+          </div>
+        <% end %>
       </div>
     </div>
   <% end %>
