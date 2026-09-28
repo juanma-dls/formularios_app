@@ -14,10 +14,13 @@ Rails.application.routes.draw do
   resources :forms, only: %i[show edit update destroy] do
     member do
       patch :publish
+      patch :pause
+      get :confirm_close
       patch :close
       get :preview
       post :sync
       get :qr
+      get :archive
     end
 
     resource :spreadsheet_connection, only: %i[new create destroy]
@@ -31,6 +34,8 @@ Rails.application.routes.draw do
         post :duplicate
       end
     end
+
+    resources :submissions, path: "respuestas", only: %i[index show]
   end
 
   get  "f/:public_id",         to: "public_forms#show",   as: :public_form

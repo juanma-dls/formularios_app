@@ -1,0 +1,37 @@
+<div class="page-header">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small mb-1">
+        <li class="breadcrumb-item"><%= link_to @form.title, @form %></li>
+        <li class="breadcrumb-item"><%= link_to "Respuestas", form_submissions_path(@form) %></li>
+        <li class="breadcrumb-item active">#<%= @submission.id %></li>
+      </ol>
+    </nav>
+    <h1>Respuesta #<%= @submission.id %></h1>
+    <p class="page-subtitle"><%= l(@submission.created_at, format: :long) %></p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="list-group list-group-flush">
+    <% @columns.each do |field, column| %>
+      <% value = display_answer(field, FormField.value_for_column(@submission.answers, column["key"])) %>
+      <div class="list-group-item py-3">
+        <div class="small text-secondary mb-1"><%= column["label"] %></div>
+        <div style="white-space: pre-line"><%= value.presence || "—" %></div>
+      </div>
+    <% end %>
+    <% if @submission.terms_accepted_at %>
+      <div class="list-group-item py-3">
+        <div class="small text-secondary mb-1">Bases y condiciones</div>
+        <div>Aceptadas el <%= l(@submission.terms_accepted_at, format: :long) %></div>
+      </div>
+    <% end %>
+    <% if @form.sheet_gid %>
+      <div class="list-group-item py-3 small text-secondary">
+        <i class="bi bi-table me-1"></i>
+        <%= @submission.synced_at ? "Enviada a la planilla el #{l(@submission.synced_at, format: :short)}" : "Pendiente de enviar a la planilla" %>
+      </div>
+    <% end %>
+  </div>
+</div>

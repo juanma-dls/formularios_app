@@ -45,14 +45,20 @@ class PublicFormsController < ApplicationController
   end
 
   def answer_params
-    permitted = @form.fields.map do |field|
-      field.field_type == "multiple_choice" ? { field.key => [] } : field.key
+    permitted = @form.fields.select(&:input?).map do |field|
+      if field.field_type == "multiple_choice"
+        { field.key => [] }
+      elsif field.field_type == "phone" && field.split_area_code?
+        { field.key => %i[area number] }
+      else
+        field.key
+      end
     end
     params.fetch(:answers, {}).permit(*permitted)
   end
 
   def render_unavailable
-    render :unavailable, status: (@form.closed? ? :ok : :not_found)
+    render :unavailable, status: (@form.draft? ? :not_found : :ok)
   end
 
   # Marca de tiempo firmada: registra cuándo se abrió el formulario

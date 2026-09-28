@@ -3,6 +3,6 @@ class SyncFormJob < ApplicationJob
 
   def perform(form_id)
     form = Form.find_by(id: form_id)
-    FormSheetSync.call(form) if form
+    FormSheetSync.call(form) if form&.syncable?
   end
 end

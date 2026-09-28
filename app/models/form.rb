@@ -2,15 +2,19 @@ class Form < ApplicationRecord
   include SpreadsheetConnectable
 
   TERMS_MAX_SIZE = 10.megabytes
+  ARCHIVE_GRACE_DAYS = ENV.fetch("ARCHIVE_GRACE_DAYS", 7).to_i
+  MAX_RETENTION_DAYS = ENV.fetch("MAX_RETENTION_DAYS", 90).to_i
 
   has_one_attached :terms_document
+  has_one_attached :archive
 
   belongs_to :area
   has_many :fields, -> { order(:position) }, class_name: "FormField",
            dependent: :destroy, inverse_of: :form
   has_many :submissions, dependent: :destroy
+  has_many :archive_downloads, dependent: :delete_all
 
-  enum :status, { draft: 0, published: 1, closed: 2 }
+  enum :status, { draft: 0, published: 1, closed: 2, paused: 3 }
 
   delegate :organization, to: :area
 
@@ -47,6 +51,30 @@ class Form < ApplicationRecord
 
   def page_count
     fields.count { |field| field.section? && field.starts_page? } + 1
+  end
+
+  def first_archive_download_at
+    archive_downloads.minimum(:created_at)
+  end
+
+  # Cuándo se borran el archivo y los datos personales: 7 días después de la
+  # primera descarga, o a los 90 días del cierre, lo que ocurra antes
+  def purge_scheduled_at
+    return unless closed? && closed_at && archive_generated_at && data_purged_at.nil?
+
+    limits = [closed_at + MAX_RETENTION_DAYS.days]
+    first = first_archive_download_at
+    limits << first + ARCHIVE_GRACE_DAYS.days if first
+    limits.min
+  end
+
+  # Un formulario activo sin planilla adopta la de su área u organización en cuanto aparece
+  def adopt_spreadsheet?
+    (published? || paused?) && synced_spreadsheet_id.blank? && effective_spreadsheet_id.present?
+  end
+
+  def syncable?
+    synced_spreadsheet_id.present? || adopt_spreadsheet?
   end
 
   private

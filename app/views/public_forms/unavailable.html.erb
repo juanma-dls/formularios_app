@@ -1,5 +1,15 @@
-<% content_for :title, "Formulario no disponible" %>
+<% content_for :title, @form.draft? ? "Formulario no disponible" : @form.title %>
 <div class="mx-auto text-center bg-white rounded border p-5" style="max-width: 720px">
-  <h1 class="h4 mb-3"><%= @form.closed? ? @form.title : "Formulario no disponible" %></h1>
-  <p class="text-secondary mb-0">Este formulario no está recibiendo respuestas en este momento.</p>
+  <% if @form.paused? %>
+    <i class="bi bi-pause-circle fs-1 text-warning"></i>
+    <h1 class="h4 my-3"><%= @form.title %></h1>
+    <p class="text-secondary mb-0">El formulario está pausado por el momento. Volvé a intentar más tarde.</p>
+  <% elsif @form.closed? %>
+    <i class="bi bi-lock fs-1 text-secondary"></i>
+    <h1 class="h4 my-3"><%= @form.title %></h1>
+    <p class="text-secondary mb-0">Este formulario está cerrado y ya no recibe respuestas.</p>
+  <% else %>
+    <h1 class="h4 mb-3">Formulario no disponible</h1>
+    <p class="text-secondary mb-0">Este formulario no existe o todavía no se publicó.</p>
+  <% end %>
 </div>

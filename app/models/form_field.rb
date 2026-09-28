@@ -32,6 +32,7 @@ class FormField < ApplicationRecord
   CHOICE_TYPES   = %w[single_choice dropdown multiple_choice image_choice].freeze
   UNIQUE_ALLOWED = %w[short_text number email phone dni].freeze
   SINGLE_IN_PRESETS = %w[dni].freeze
+  PHONE_PARTS = { "area" => "código de área", "number" => "número" }.freeze
 
   belongs_to :form
   has_many :options, -> { order(:position) }, class_name: "FieldOption",
@@ -44,6 +45,7 @@ class FormField < ApplicationRecord
   before_validation :normalize_option_positions
   before_validation :clear_input_flags, if: :section?
   before_validation { self.starts_page = false unless section? }
+  before_validation { self.split_area_code = false unless field_type == "phone" }
 
   validates :label, presence: true, length: { maximum: 200 }
   validates :field_type, inclusion: { in: TYPES.keys }
@@ -108,6 +110,23 @@ class FormField < ApplicationRecord
       end
       copy
     end
+  end
+
+  def columns
+    if field_type == "phone" && split_area_code?
+      PHONE_PARTS.map { |part, name| { "key" => "#{key}:#{part}", "label" => "#{label} (#{name})" } }
+    else
+      [{ "key" => key, "label" => label }]
+    end
+  end
+
+  def self.value_for_column(answers, column_key)
+    base, part = column_key.split(":", 2)
+    value = answers[base]
+    return value unless part
+
+    area, number = value.to_s.split(" ", 2)
+    part == "area" ? area : number
   end
 
   private

@@ -7,6 +7,7 @@ class SpreadsheetConnectionsController < ApplicationController
 
   def create
     @owner.connect_spreadsheet!(params[:spreadsheet_url])
+    affected_forms.select(&:syncable?).each { |form| SyncFormJob.perform_later(form.id) }
     redirect_to @organization, notice: "Planilla \"#{@owner.spreadsheet_title}\" conectada."
   rescue GoogleSheets::Error => e
     flash.now[:alert] = e.message
@@ -19,6 +20,14 @@ class SpreadsheetConnectionsController < ApplicationController
   end
 
   private
+  
+  def affected_forms
+    case @owner
+    when Form then [@owner]
+    when Area then @owner.forms.to_a
+    else Form.joins(:area).where(areas: { organization_id: @owner.id }).includes(area: :organization).to_a
+    end
+  end
 
   def set_owner
     if params[:form_id]
@@ -34,6 +43,7 @@ class SpreadsheetConnectionsController < ApplicationController
   end
 
   def prevent_change_while_published
-    redirect_to @form, alert: "Cerrá el formulario antes de cambiar su planilla." if @form&.published?
+    return unless @form&.published? || @form&.closed?
+    redirect_to @form, alert: "Pausá el formulario antes de cambiar su planilla. Un formulario cerrado no se puede modificar."
   end
 end

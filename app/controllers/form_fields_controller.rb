@@ -1,8 +1,9 @@
 class FormFieldsController < ApplicationController
-  EDITABLE = %i[label help_text required unique_answer starts_page].freeze
+  EDITABLE = %i[label help_text required unique_answer starts_page split_area_code].freeze
 
   before_action :set_form
   before_action :set_field, only: %i[edit update destroy duplicate]
+  before_action :ensure_not_closed
 
   def create
     @field = @form.fields.new(params.expect(form_field: [:field_type, *EDITABLE]))
@@ -12,10 +13,7 @@ class FormFieldsController < ApplicationController
     if @field.save
       respond_to do |format|
         format.turbo_stream do
-          render turbo_stream: [
-            turbo_stream.remove("fields_empty"),
-            turbo_stream.append("fields", partial: "form_fields/editing")
-          ]
+          render turbo_stream: turbo_stream.append("fields", partial: "form_fields/editing")
         end
         format.html { redirect_to @form }
       end
@@ -87,6 +85,23 @@ class FormFieldsController < ApplicationController
     end
 
     redirect_to @form, notice: preset_notice(preset, added, skipped)
+  end
+
+  def ensure_not_closed
+    redirect_to @form, alert: "El formulario está cerrado y no se puede modificar." if @form.closed?
+  end
+
+  def answer_params
+    permitted = @form.fields.select(&:input?).map do |field|
+      if field.field_type == "multiple_choice"
+        { field.key => [] }
+      elsif field.field_type == "phone" && field.split_area_code?
+        { field.key => %i[area number] }
+      else
+        field.key
+      end
+    end
+    params.fetch(:answers, {}).permit(*permitted)
   end
 
   private

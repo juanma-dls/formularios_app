@@ -1,0 +1,99 @@
+<div class="page-header">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small mb-1">
+        <li class="breadcrumb-item"><%= link_to @area.name, organization_area_forms_path(@organization, @area) %></li>
+        <li class="breadcrumb-item"><%= link_to @form.title, @form %></li>
+        <li class="breadcrumb-item active">Respuestas</li>
+      </ol>
+    </nav>
+    <h1>Respuestas</h1>
+  </div>
+</div>
+
+<% if @form.data_purged_at %>
+  <div class="alert alert-secondary d-flex gap-2">
+    <i class="bi bi-patch-check"></i>
+    <div>
+      Las respuestas de este formulario se borraron de nuestros servidores el <%= l(@form.data_purged_at, format: :long) %>.
+      El resumen de resultados sigue disponible en <%= link_to "la pantalla del formulario", @form %>.
+    </div>
+  </div>
+<% else %>
+  <%= form_with url: form_submissions_path(@form), method: :get, class: "card card-body mb-3" do |f| %>
+    <div class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <%= f.label :q, "Buscar", class: "form-label small" %>
+        <%= f.search_field :q, value: params[:q], class: "form-control", placeholder: "Nombre, DNI, email o número de respuesta" %>
+      </div>
+      <div class="col-6 col-md-2">
+        <%= f.label :desde, "Desde", class: "form-label small" %>
+        <%= f.date_field :desde, value: params[:desde], class: "form-control" %>
+      </div>
+      <div class="col-6 col-md-2">
+        <%= f.label :hasta, "Hasta", class: "form-label small" %>
+        <%= f.date_field :hasta, value: params[:hasta], class: "form-control" %>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <%= f.submit "Buscar", class: "btn btn-primary flex-grow-1", name: nil %>
+        <% if params[:q].present? || params[:desde].present? || params[:hasta].present? %>
+          <%= link_to "Limpiar", form_submissions_path(@form), class: "btn btn-outline-secondary" %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <p class="small text-secondary mb-2">
+    <%= pluralize(@total, "respuesta", plural: "respuestas") %>
+    <%= "encontradas" if params[:q].present? || params[:desde].present? || params[:hasta].present? %>
+  </p>
+
+  <% if @submissions.any? %>
+    <div class="responses-table-wrap border rounded bg-white mb-3">
+      <table class="table table-sm table-hover align-middle mb-0 responses-table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Fecha</th>
+            <% @columns.each do |_field, column| %>
+              <th scope="col" title="<%= column["label"] %>"><%= column["label"] %></th>
+            <% end %>
+            <th scope="col"><span class="visually-hidden">Ver</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @submissions.each do |submission| %>
+            <tr>
+              <td class="text-secondary"><%= submission.id %></td>
+              <td class="text-nowrap"><%= l(submission.created_at, format: :short) %></td>
+              <% @columns.each do |field, column| %>
+                <td><%= display_answer(field, FormField.value_for_column(submission.answers, column["key"])) %></td>
+              <% end %>
+              <td class="text-end">
+                <%= link_to form_submission_path(@form, submission), class: "btn btn-sm btn-outline-secondary btn-icon",
+                      title: "Ver respuesta", aria: { label: "Ver respuesta #{submission.id}" } do %>
+                  <i class="bi bi-eye"></i>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <% if @pages > 1 %>
+      <nav class="d-flex justify-content-between align-items-center" aria-label="Páginas de respuestas">
+        <% filters = params.permit(:q, :desde, :hasta).to_h %>
+        <%= link_to "Anterior", form_submissions_path(@form, filters.merge(page: @page - 1)),
+              class: "btn btn-outline-secondary#{' disabled' if @page == 1}", aria: { disabled: @page == 1 } %>
+        <span class="small text-secondary">Página <%= @page %> de <%= @pages %></span>
+        <%= link_to "Siguiente", form_submissions_path(@form, filters.merge(page: @page + 1)),
+              class: "btn btn-outline-secondary#{' disabled' if @page == @pages}", aria: { disabled: @page == @pages } %>
+      </nav>
+    <% end %>
+  <% else %>
+    <div class="text-center text-secondary py-5 bg-white rounded border">
+      <%= params[:q].present? || params[:desde].present? ? "No hay respuestas que coincidan con la búsqueda." : "Todavía no hay respuestas." %>
+    </div>
+  <% end %>
+<% end %>

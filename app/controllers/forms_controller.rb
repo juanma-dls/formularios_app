@@ -1,9 +1,17 @@
 class FormsController < ApplicationController
   before_action :set_area, only: %i[index new create]
   before_action :set_form, except: %i[index new create]
+  before_action :ensure_not_closed, only: %i[edit update publish pause confirm_close close]
 
   def index
-    @forms = @area.forms.includes(:fields).order(created_at: :desc)
+    @tab = params[:tab] == "cerrados" ? "cerrados" : "activos"
+    forms = @area.forms.includes(:fields)
+    @forms = if @tab == "cerrados"
+              forms.closed.order(closed_at: :desc)
+            else
+              forms.where.not(status: :closed).order(created_at: :desc)
+            end
+    @counts = { "activos" => @area.forms.where.not(status: :closed).count, "cerrados" => @area.forms.closed.count }
   end
 
   def new
@@ -40,24 +48,24 @@ class FormsController < ApplicationController
   end
 
   def publish
-    if @form.fields.empty?
-      return redirect_to @form, alert: "Agregá al menos un campo antes de publicar."
-    end
-    if @form.effective_spreadsheet_id.blank?
-      return redirect_to @form, alert: "Conectá una planilla de Google antes de publicar."
-    end
+    return redirect_to(@form, alert: "Agregá al menos una pregunta antes de publicar.") if @form.fields.none?(&:input?)
 
-    # Si cambió la planilla desde la última publicación, se empieza en una pestaña nueva
-    if @form.synced_spreadsheet_id != @form.effective_spreadsheet_id
+    if @form.effective_spreadsheet_id.present?
+      # Si cambió la planilla desde la última publicación, se empieza en una pestaña nueva
+      if @form.synced_spreadsheet_id != @form.effective_spreadsheet_id
+        @form.update!(synced_spreadsheet_id: nil, sheet_gid: nil)
+      end
+      unless FormSheetSync.call(@form)
+        return redirect_to @form, alert: "No se pudo preparar la planilla: #{@form.last_sync_error}"
+      end
+    else
+      # Sin planilla: deja de sincronizar aunque antes haya tenido una
       @form.update!(synced_spreadsheet_id: nil, sheet_gid: nil)
     end
 
-    if FormSheetSync.call(@form)
-      @form.update!(status: :published, closed_at: nil, backup_sent_at: nil)
-      redirect_to @form, notice: "Formulario publicado. Las respuestas se guardan en la pestaña \"#{@form.sheet_title}\"."
-    else
-      redirect_to @form, alert: "No se pudo preparar la planilla: #{@form.last_sync_error}"
-    end
+    @form.update!(status: :published, closed_at: nil)
+    message = @form.sheet_gid ? "Las respuestas también se envían a la pestaña \"#{@form.sheet_title}\"." : "Las respuestas se ven en la sección Respuestas."
+    redirect_to @form, notice: "Formulario publicado. #{message}"
   end
 
   def sync
@@ -91,7 +99,42 @@ class FormsController < ApplicationController
     end
   end
 
+  def pause
+    return redirect_to(@form, alert: "Solo se puede pausar un formulario publicado.") unless @form.published?
+
+    @form.paused!
+    redirect_to @form, notice: "Formulario pausado. No recibe respuestas hasta que lo reanudes."
+  end
+
+  def confirm_close
+    return redirect_to(@form, alert: "Solo se puede cerrar un formulario publicado o pausado.") unless @form.published? || @form.paused?
+  end
+
+  def close
+    return redirect_to(@form, alert: "Solo se puede cerrar un formulario publicado o pausado.") unless @form.published? || @form.paused?
+
+    unless params[:confirmation].to_s.squish.casecmp?(@form.title.squish)
+      return redirect_to confirm_close_form_path(@form), alert: "El nombre no coincide. Escribilo tal cual para confirmar."
+    end
+
+    @form.update!(status: :closed, closed_at: Time.current)
+    GenerateFormArchiveJob.perform_later(@form.id)
+    redirect_to @form, notice: "Formulario cerrado. Estamos preparando el archivo con las respuestas."
+  end
+
+  def archive
+    return redirect_to(@form, alert: "El archivo no está disponible.") unless @form.archive.attached?
+
+    @form.archive_downloads.create!(remote_ip: request.remote_ip)
+    send_data @form.archive.download, filename: @form.archive.filename.to_s,
+                                      type: @form.archive.content_type, disposition: "attachment"
+  end
+
   private
+
+  def ensure_not_closed
+    redirect_to @form, alert: "El formulario está cerrado y no se puede modificar." if @form.closed?
+  end
 
   def set_area
     @organization = Organization.find_by!(slug: params[:organization_id])
