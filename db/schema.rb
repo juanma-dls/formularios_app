@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_135102) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_153907) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -37,6 +37,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_135102) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "archive_downloads", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "form_id", null: false
+    t.string "remote_ip"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["form_id"], name: "index_archive_downloads_on_form_id"
   end
 
   create_table "areas", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -97,7 +105,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_135102) do
     t.boolean "captcha_enabled", default: false, null: false
     t.boolean "terms_required", default: false, null: false
     t.datetime "closed_at"
-    t.datetime "backup_sent_at"
+    t.datetime "archive_generated_at"
+    t.text "archive_error"
+    t.json "results"
+    t.datetime "data_purged_at"
     t.index ["area_id"], name: "index_forms_on_area_id"
     t.index ["public_id"], name: "index_forms_on_public_id", unique: true
   end
@@ -153,6 +164,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_135102) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "archive_downloads", "forms"
   add_foreign_key "areas", "organizations"
   add_foreign_key "field_options", "form_fields"
   add_foreign_key "form_fields", "forms"

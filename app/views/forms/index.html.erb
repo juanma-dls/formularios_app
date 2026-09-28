@@ -5,6 +5,17 @@
   <%= link_to "Nuevo formulario", new_organization_area_form_path(@organization, @area), class: "btn btn-primary" %>
 </div>
 
+<ul class="nav nav-tabs mb-3">
+  <% { "activos" => "Activos", "cerrados" => "Cerrados" }.each do |tab, label| %>
+    <li class="nav-item">
+      <%= link_to organization_area_forms_path(@organization, @area, tab: tab),
+            class: "nav-link#{' active' if @tab == tab}", aria: { current: (@tab == tab ? "page" : nil) } do %>
+        <%= label %> <span class="badge bg-light text-body border ms-1"><%= @counts[tab] %></span>
+      <% end %>
+    </li>
+  <% end %>
+</ul>
+
 <% if @forms.any? %>
   <div class="list-group">
     <% @forms.each do |form| %>
@@ -21,7 +32,7 @@
   </div>
 <% else %>
   <div class="text-center text-secondary py-5 bg-white rounded border">
-    <p class="mb-3">Esta área todavía no tiene formularios.</p>
+    <p class="mb-3"><%= @tab == "cerrados" ? "Todavía no hay formularios cerrados en esta área." : "Esta área no tiene formularios activos." %></p>
     <%= link_to "Crear el primero", new_organization_area_form_path(@organization, @area), class: "btn btn-primary" %>
   </div>
 <% end %>

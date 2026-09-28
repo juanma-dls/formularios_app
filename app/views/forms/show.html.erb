@@ -15,21 +15,118 @@
     <%= link_to preview_form_path(@form), class: "btn btn-outline-secondary", target: "_blank" do %>
       <i class="bi bi-eye me-1"></i>Vista previa
     <% end %>
-    <%= link_to edit_form_path(@form), class: "btn btn-outline-secondary" do %>
-      <i class="bi bi-gear me-1"></i>Configuración
-    <% end %>
-    <% if @form.published? %>
-      <%= button_to close_form_path(@form), method: :patch, class: "btn btn-outline-danger",
-            form: { data: { turbo_confirm: "El formulario va a dejar de recibir respuestas. ¿Continuar?" } } do %>
-        <i class="bi bi-stop-circle me-1"></i>Cerrar
+
+    <% unless @form.closed? %>
+      <%= link_to edit_form_path(@form), class: "btn btn-outline-secondary" do %>
+        <i class="bi bi-gear me-1"></i>Configuración
       <% end %>
-    <% else %>
+    <% end %>
+
+    <% case @form.status %>
+    <% when "draft" %>
       <%= button_to publish_form_path(@form), method: :patch, class: "btn btn-success" do %>
-        <i class="bi bi-send me-1"></i><%= @form.closed? ? "Reabrir" : "Publicar" %>
+        <i class="bi bi-send me-1"></i>Publicar
+      <% end %>
+    <% when "published" %>
+      <%= button_to pause_form_path(@form), method: :patch, class: "btn btn-outline-warning" do %>
+        <i class="bi bi-pause-circle me-1"></i>Pausar
+      <% end %>
+      <%= link_to confirm_close_form_path(@form), class: "btn btn-outline-danger" do %>
+        <i class="bi bi-lock me-1"></i>Cerrar
+      <% end %>
+    <% when "paused" %>
+      <%= button_to publish_form_path(@form), method: :patch, class: "btn btn-success" do %>
+        <i class="bi bi-play-circle me-1"></i>Reanudar
+      <% end %>
+      <%= link_to confirm_close_form_path(@form), class: "btn btn-outline-danger" do %>
+        <i class="bi bi-lock me-1"></i>Cerrar
       <% end %>
     <% end %>
   </div>
 </div>
+
+<% if @form.paused? %>
+  <div class="alert alert-warning d-flex gap-2">
+    <i class="bi bi-pause-circle-fill"></i>
+    <div>El formulario está pausado: el enlace muestra que no recibe respuestas por el momento.</div>
+  </div>
+<% end %>
+
+<% if @form.closed? %>
+  <div class="alert alert-secondary d-flex gap-2">
+    <i class="bi bi-lock-fill"></i>
+    <div>
+      Cerrado el <%= l(@form.closed_at, format: :long) if @form.closed_at %>.
+      Ya no recibe respuestas y no se puede modificar.
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <h2 class="h6"><i class="bi bi-file-earmark-spreadsheet me-1"></i>Archivo de respuestas</h2>
+
+      <% if @form.data_purged_at %>
+        <p class="mb-0">
+          <i class="bi bi-patch-check-fill text-success me-1"></i>
+          <% if (first = @form.first_archive_download_at) %>
+            Las respuestas se descargaron el <%= l(first, format: :long) %> y
+          <% else %>
+            Las respuestas
+          <% end %>
+          se borraron de nuestros servidores el <%= l(@form.data_purged_at, format: :long) %>.
+        </p>
+      <% elsif @form.archive_error.present? %>
+        <p class="text-danger mb-0"><i class="bi bi-exclamation-circle me-1"></i><%= @form.archive_error %></p>
+      <% elsif @form.archive.attached? %>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+          <div class="small">
+            <% downloads = @form.archive_downloads.count %>
+            <div>
+              <%= pluralize(@form.results&.dig("total") || 0, "respuesta", plural: "respuestas") %>.
+              <%= downloads.zero? ? "Todavía no se descargó." : "Descargado #{downloads == 1 ? '1 vez' : "#{downloads} veces"}." %>
+            </div>
+            <div class="text-secondary">
+              Se borra de nuestros servidores el <%= l(@form.purge_scheduled_at, format: :long) %>.
+              <% if downloads.zero? %>Descargalo antes de esa fecha.<% end %>
+            </div>
+          </div>
+          <%= link_to archive_form_path(@form), class: "btn btn-primary", data: { turbo: false } do %>
+            <i class="bi bi-download me-1"></i>Descargar Excel
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-secondary mb-0">
+          <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+          Estamos preparando el archivo. Recargá en unos segundos.
+        </p>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @form.results.present? && @form.results["fields"].any? %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 class="h6 mb-3"><i class="bi bi-bar-chart me-1"></i>Resumen de resultados</h2>
+        <% @form.results["fields"].each do |result| %>
+          <% field_total = [result["options"].sum { |o| o["count"] }, 1].max %>
+          <div class="mb-3">
+            <div class="fw-semibold small mb-2"><%= result["label"] %></div>
+            <% result["options"].sort_by { |o| -o["count"] }.each do |option| %>
+              <% percent = (option["count"] * 100.0 / field_total).round %>
+              <div class="d-flex align-items-center gap-2 small mb-1">
+                <span class="text-truncate" style="width: 35%"><%= option["label"] %></span>
+                <div class="progress flex-grow-1" style="height: 8px" role="presentation">
+                  <div class="progress-bar" style="width: <%= percent %>%"></div>
+                </div>
+                <span class="text-nowrap text-end" style="width: 6rem"><%= option["count"] %> (<%= percent %>%)</span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
 
 <div class="card mb-4">
   <div class="list-group list-group-flush">
@@ -114,7 +211,7 @@
 </div>
 
 <div class="row g-4">
-  <div class="col-lg-8">
+  <div class="<%= @form.closed? ? 'col-12' : 'col-lg-8' %>">
     <div class="d-flex align-items-baseline justify-content-between mb-3">
       <h2 class="h5 mb-0">Preguntas</h2>
       <% page_count = @form.pages.size %>
@@ -139,48 +236,51 @@
         <span class="small text-secondary ms-auto" data-page-count></span>
       </div>
 
-      <div id="fields" data-controller="sortable" data-sortable-url-value="<%= reorder_form_form_fields_path(@form) %>">
-        <%= render partial: "form_fields/form_field", collection: @fields, as: :field %>
+      <div id="fields" <%= 'data-controller="sortable"'.html_safe unless @form.closed? %>
+          data-sortable-url-value="<%= reorder_form_form_fields_path(@form) %>">
+        <%= render partial: "form_fields/form_field", collection: @fields, as: :field, locals: { readonly: @form.closed? } %>
       </div>
     </div>
   </div>
 
-  <div class="col-lg-4">
-    <div class="position-sticky" style="top: 1rem">
-      <div class="card mb-3">
-        <div class="card-header bg-white fw-semibold">Agregar pregunta</div>
-        <div class="card-body">
-          <div class="row row-cols-2 g-2">
-            <% FormField::TYPES.each do |type, name| %>
-              <%= button_to form_form_fields_path(@form), params: { "form_field[field_type]" => type },
-                    form_class: "col", class: "btn btn-sm btn-outline-secondary w-100 h-100 type-button" do %>
-                <i class="bi <%= FormField::ICONS[type] %>"></i><span><%= name %></span>
+  <% unless @form.closed? %>
+    <div class="col-lg-4">
+      <div class="position-sticky" style="top: 1rem">
+        <div class="card mb-3">
+          <div class="card-header bg-white fw-semibold">Agregar pregunta</div>
+          <div class="card-body">
+            <div class="row row-cols-2 g-2">
+              <% FormField::TYPES.each do |type, name| %>
+                <%= button_to form_form_fields_path(@form), params: { "form_field[field_type]" => type },
+                      form_class: "col", class: "btn btn-sm btn-outline-secondary w-100 h-100 type-button" do %>
+                  <i class="bi <%= FormField::ICONS[type] %>"></i><span><%= name %></span>
+                <% end %>
+              <% end %>
+            </div>
+
+            <%= button_to form_form_fields_path(@form),
+                  params: { "form_field[field_type]" => "section", "form_field[starts_page]" => "1" },
+                  form_class: "mt-2", class: "btn btn-sm btn-outline-primary w-100 type-button justify-content-center" do %>
+              <i class="bi bi-file-earmark-plus"></i><span>Nueva página</span>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header bg-white fw-semibold">Agregar bloque</div>
+          <div class="list-group list-group-flush">
+            <% FieldPresets::PRESETS.each do |key, preset| %>
+              <%= button_to apply_preset_form_form_fields_path(@form), params: { preset: key },
+                    class: "list-group-item list-group-item-action text-start border-0" do %>
+                <div class="fw-semibold"><%= preset[:name] %></div>
+                <div class="small text-secondary"><%= preset[:description] %></div>
               <% end %>
             <% end %>
           </div>
-
-          <%= button_to form_form_fields_path(@form),
-                params: { "form_field[field_type]" => "section", "form_field[starts_page]" => "1" },
-                form_class: "mt-2", class: "btn btn-sm btn-outline-primary w-100 type-button justify-content-center" do %>
-            <i class="bi bi-file-earmark-plus"></i><span>Nueva página</span>
-          <% end %>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header bg-white fw-semibold">Agregar bloque</div>
-        <div class="list-group list-group-flush">
-          <% FieldPresets::PRESETS.each do |key, preset| %>
-            <%= button_to apply_preset_form_form_fields_path(@form), params: { preset: key },
-                  class: "list-group-item list-group-item-action text-start border-0" do %>
-              <div class="fw-semibold"><%= preset[:name] %></div>
-              <div class="small text-secondary"><%= preset[:description] %></div>
-            <% end %>
-          <% end %>
         </div>
       </div>
     </div>
-  </div>
+  <% end %>
 </div>
 
 <div class="danger-zone d-flex flex-wrap justify-content-between align-items-center gap-3">

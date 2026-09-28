@@ -1,16 +1,22 @@
 class PurgeSyncedSubmissionsJob < ApplicationJob
-  # Días que se conservan los datos después de llegar a la planilla
-  RETENTION_DAYS = ENV.fetch("SUBMISSION_RETENTION_DAYS", 30).to_i
-
   def perform
-    forms = Form.closed
-                .where(closed_at: ..RETENTION_DAYS.days.ago)
-                .where.not(backup_sent_at: nil)
+    Form.closed.where(data_purged_at: nil).where.not(archive_generated_at: nil).find_each do |form|
+      due = form.purge_scheduled_at
+      next unless due && due <= Time.current
+      # Si tiene planilla y quedan respuestas por enviar, esperar a que se sincronicen
+      next if form.sheet_gid && form.submissions.where(synced_at: nil).exists?
 
-    Submission.where(form_id: forms.select(:id), purged_at: nil)
-              .where.not(synced_at: nil)
-              .in_batches(of: 1000) do |batch|
+      purge!(form)
+    end
+  end
+
+  private
+
+  def purge!(form)
+    form.submissions.where(purged_at: nil).in_batches(of: 1000) do |batch|
       batch.update_all(answers: {}, purged_at: Time.current)
     end
+    form.archive.purge
+    form.update!(data_purged_at: Time.current)
   end
 end

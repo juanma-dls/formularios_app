@@ -1,21 +1,29 @@
+<% readonly = local_assigns.fetch(:readonly, false) %>
 <% page_break = field.section? && field.starts_page? %>
+
 <%= turbo_frame_tag field, data: { field_id: field.id, pages_target: "item",
       page_break: (page_break ? "" : nil), kind: (field.input? ? "input" : "section") } do %>
   <% if page_break %>
     <div class="page-divider d-flex align-items-center gap-2">
-      <span class="drag-handle" title="Arrastrar para reordenar"><i class="bi bi-grip-vertical"></i></span>
+      <% unless readonly %>
+        <span class="drag-handle" title="Arrastrar para reordenar"><i class="bi bi-grip-vertical"></i></span>
+      <% end %>
       <button type="button" class="btn btn-sm btn-link text-body p-0 page-toggle" data-action="pages#toggle"
               aria-expanded="true" aria-label="Mostrar u ocultar las preguntas de esta página">
         <i class="bi bi-chevron-down"></i>
       </button>
       <span class="fw-semibold text-nowrap">Página <span data-page-number></span></span>
-      <span class="text-secondary text-truncate"><%= field.label %></span>
-      <span class="small text-secondary ms-auto text-nowrap" data-page-count></span>
-      <%= render "form_fields/field_actions", field: field %>
+      <span class="text-secondary text-truncate min-w-0"><%= field.label %></span>
+      <span class="small text-secondary ms-auto text-nowrap d-none d-sm-inline" data-page-count></span>
+      <% unless readonly %>
+        <%= render "form_fields/field_actions", field: field %>
+      <% end %>
     </div>
   <% else %>
     <div class="field-row d-flex align-items-center gap-2<%= ' field-row-section' if field.section? %>">
-      <span class="drag-handle" title="Arrastrar para reordenar"><i class="bi bi-grip-vertical"></i></span>
+      <% unless readonly %>
+        <span class="drag-handle" title="Arrastrar para reordenar"><i class="bi bi-grip-vertical"></i></span>
+      <% end %>
       <i class="bi <%= field.icon %> text-secondary" title="<%= field.type_name %>"></i>
 
       <div class="flex-grow-1 min-w-0">
@@ -30,17 +38,19 @@
       </div>
 
       <% if field.field_type == "image_choice" %>
-        <span class="badge bg-light text-body border fw-medium text-nowrap">
+        <span class="badge bg-light text-body border fw-medium text-nowrap d-none d-md-inline-flex">
           <i class="bi bi-images me-1"></i><%= field.options.count { |o| o.image.attached? } %>/<%= field.options.size %>
         </span>
       <% end %>
       <% if field.unique_answer? %>
-        <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle fw-medium text-nowrap">
+        <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle fw-medium text-nowrap d-none d-md-inline-flex">
           <i class="bi bi-shield-check me-1"></i>Sin repetidos
         </span>
       <% end %>
 
-      <%= render "form_fields/field_actions", field: field %>
+      <% unless readonly %>
+        <%= render "form_fields/field_actions", field: field %>
+      <% end %>
     </div>
   <% end %>
 <% end %>

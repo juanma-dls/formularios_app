@@ -2,7 +2,8 @@ module FormsHelper
   FORM_STATUS = {
     "draft"     => ["Borrador", "secondary"],
     "published" => ["Publicado", "success"],
-    "closed"    => ["Cerrado", "danger"]
+    "closed"    => ["Cerrado", "danger"],
+    "paused"    => ["Pausado", "warning"],
   }.freeze
 
   def form_status_badge(form)

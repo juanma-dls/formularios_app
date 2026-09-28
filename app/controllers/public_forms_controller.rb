@@ -52,7 +52,7 @@ class PublicFormsController < ApplicationController
   end
 
   def render_unavailable
-    render :unavailable, status: (@form.closed? ? :ok : :not_found)
+    render :unavailable, status: (@form.draft? ? :not_found : :ok)
   end
 
   # Marca de tiempo firmada: registra cuándo se abrió el formulario

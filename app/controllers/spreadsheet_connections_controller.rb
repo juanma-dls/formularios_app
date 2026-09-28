@@ -34,6 +34,7 @@ class SpreadsheetConnectionsController < ApplicationController
   end
 
   def prevent_change_while_published
-    redirect_to @form, alert: "Cerrá el formulario antes de cambiar su planilla." if @form&.published?
+    return unless @form&.published? || @form&.closed?
+    redirect_to @form, alert: "Pausá el formulario antes de cambiar su planilla. Un formulario cerrado no se puede modificar."
   end
 end

@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  form: one
+  remote_ip: MyString
+
+two:
+  form: two
+  remote_ip: MyString

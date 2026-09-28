@@ -1,0 +1,40 @@
+<%= render "breadcrumb" %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <h1 class="h3 mb-3">Cerrar "<%= @form.title %>"</h1>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <p>
+          Cerrar un formulario es <strong>definitivo</strong>. Si solo necesitás cortar las respuestas
+          por un tiempo, usá <strong>Pausar</strong>.
+        </p>
+        <ol class="mb-0">
+          <li class="mb-1">Deja de recibir respuestas y no se puede volver a abrir ni modificar.</li>
+          <li class="mb-1">
+            Preparamos un archivo Excel con las <%= @form.submissions.where(purged_at: nil).count %> respuestas
+            para que lo descargues.
+          </li>
+          <li class="mb-1">
+            Lo borramos de nuestros servidores, junto con los datos personales, <%= Form::ARCHIVE_GRACE_DAYS %> días
+            después de la primera descarga. Si nadie lo descarga, se borra igual a los <%= Form::MAX_RETENTION_DAYS %> días del cierre.
+          </li>
+          <% if @form.sheet_gid %>
+            <li class="mb-1">Las respuestas que ya están en tu planilla de Google no se modifican.</li>
+          <% end %>
+          <li>Se conservan las preguntas y un resumen de resultados sin datos personales.</li>
+        </ol>
+      </div>
+    </div>
+
+    <%= form_with url: close_form_path(@form), method: :patch do |f| %>
+      <%= f.label :confirmation, class: "form-label" do %>
+        Para confirmar, escribí el nombre del formulario: <strong><%= @form.title %></strong>
+      <% end %>
+      <%= f.text_field :confirmation, class: "form-control mb-3", autocomplete: "off", required: true %>
+      <%= f.submit "Cerrar definitivamente", class: "btn btn-danger" %>
+      <%= link_to "Cancelar", @form, class: "btn btn-link" %>
+    <% end %>
+  </div>
+</div>

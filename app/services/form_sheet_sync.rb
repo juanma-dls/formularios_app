@@ -90,7 +90,7 @@ class FormSheetSync
 
   def send_pending!
     loop do
-      batch = @form.submissions.where(synced_at: nil).order(:id).limit(BATCH_SIZE).to_a
+      batch = @form.submissions.where(synced_at: nil, purged_at: nil).order(:id).limit(BATCH_SIZE).to_a
       break if batch.empty?
 
       GoogleSheets.append_values!(@spreadsheet_id, a1("A1"), batch.map { |s| row_for(s) })

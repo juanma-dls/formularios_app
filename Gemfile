@@ -75,3 +75,5 @@ gem "rack-attack", "~> 6.8"
 gem "rails-i18n", "~> 8.1"
 
 gem "rqrcode", "~> 3.2"
+
+gem "caxlsx", "~> 4.5"

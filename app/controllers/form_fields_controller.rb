@@ -3,6 +3,7 @@ class FormFieldsController < ApplicationController
 
   before_action :set_form
   before_action :set_field, only: %i[edit update destroy duplicate]
+  before_action :ensure_not_closed
 
   def create
     @field = @form.fields.new(params.expect(form_field: [:field_type, *EDITABLE]))
@@ -87,6 +88,10 @@ class FormFieldsController < ApplicationController
     end
 
     redirect_to @form, notice: preset_notice(preset, added, skipped)
+  end
+
+  def ensure_not_closed
+    redirect_to @form, alert: "El formulario está cerrado y no se puede modificar." if @form.closed?
   end
 
   private
