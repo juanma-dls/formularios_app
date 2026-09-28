@@ -18,6 +18,15 @@
     <div class="form-text">Lo que ve la persona después de enviar. Si lo dejás vacío se usa el texto de ejemplo.</div>
   </div>
 
+  <div class="form-check mb-3">
+    <%= f.check_box :captcha_enabled, class: "form-check-input" %>
+    <%= f.label :captcha_enabled, "Pedir verificación anti-bots (Cloudflare Turnstile)", class: "form-check-label" %>
+    <div class="form-text">
+      Recomendado para votaciones y formularios muy difundidos. Casi siempre es invisible;
+      solo muestra un desafío si detecta un comportamiento sospechoso.
+    </div>
+  </div>
+
   <%= f.submit "Guardar", class: "btn btn-primary" %>
   <%= link_to "Cancelar", (@form.persisted? ? @form : organization_area_forms_path(@organization, @area)), class: "btn btn-link" %>
 <% end %>

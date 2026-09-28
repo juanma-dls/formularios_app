@@ -1,5 +1,8 @@
 module SpreadsheetConnectable
   extend ActiveSupport::Concern
+  included do
+    validates :spreadsheet_id, format: { with: GoogleSheets::RAW_ID }, allow_nil: true
+  end
 
   def spreadsheet_connected?
     spreadsheet_id.present?

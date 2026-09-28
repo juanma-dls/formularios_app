@@ -90,6 +90,6 @@ class FormsController < ApplicationController
   end
 
   def form_params
-    params.expect(form: [:title, :description, :success_message])
+    params.expect(form: [:title, :description, :success_message, :captcha_enabled])
   end
 end

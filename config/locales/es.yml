@@ -30,3 +30,4 @@ es:
         required: Obligatorio
         unique_answer: No permitir respuestas repetidas
         options_text: Opciones
+      captcha_enabled: Verificación anti-bots

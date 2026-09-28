@@ -12,7 +12,7 @@
         Tocá <strong>Compartir</strong> y agregá este email como <strong>Editor</strong>
         (podés desmarcar "Notificar a las personas"):
         <input class="form-control font-monospace mt-2" style="max-width: 36rem"
-               value="<%= GoogleSheets.service_account_email %>" readonly onclick="this.select()">
+               value="<%= GoogleSheets.service_account_email %>" readonly data-controller="select-all" data-action="click->select-all#select">
       </li>
       <li>Copiá el enlace de la planilla desde la barra del navegador y pegalo acá abajo.</li>
     </ol>

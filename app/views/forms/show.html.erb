@@ -53,7 +53,7 @@
       <div class="fw-semibold">Enlace público</div>
       <% if @form.published? %>
         <input class="form-control font-monospace mt-1" value="<%= public_form_url(@form.public_id) %>"
-               readonly onclick="this.select()">
+               readonly data-controller="select-all" data-action="click->select-all#select">
       <% elsif @form.closed? %>
         <span class="text-secondary">El formulario está cerrado y no recibe respuestas.</span>
       <% else %>

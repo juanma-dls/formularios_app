@@ -19,7 +19,9 @@
     <div class="alert alert-danger">Revisá las preguntas marcadas en rojo.</div>
   <% end %>
 
-  <%= form_with url: public_form_path(@form.public_id), method: :post do %>
+  <%= form_with url: public_form_path(@form.public_id), method: :post,
+      data: { turbo: false, controller: "submit-once", action: "submit->submit-once#disable" } do %>
+
     <% @form.fields.each do |field| %>
       <%= render "public_forms/field", field: field, value: @values[field.key],
                  error: @submission&.field_errors&.dig(field.key) %>
@@ -27,8 +29,17 @@
 
     <input type="text" name="website" class="d-none" tabindex="-1" autocomplete="off" aria-hidden="true">
 
-    <% unless @preview %>
-      <button type="submit" class="btn btn-primary btn-lg w-100" data-turbo-submits-with="Enviando…">Enviar</button>
+   <% unless @preview %>
+      <input type="hidden" name="t" value="<%= timing_token %>">
+
+      <% if @form.captcha_enabled? %>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+        <div class="cf-turnstile mb-3" data-sitekey="<%= TurnstileVerifier.site_key %>" data-language="es"></div>
+        <% if @captcha_error %>
+          <div class="alert alert-danger"><%= @captcha_error %></div>
+        <% end %>
+      <% end %>
+      <button type="submit" class="btn btn-primary btn-lg w-100">Enviar</button>
     <% end %>
   <% end %>
 </div>
