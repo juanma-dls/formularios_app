@@ -31,6 +31,7 @@ class FormField < ApplicationRecord
   after_save :sync_options, if: -> { @options_text && choice? }
   after_commit :refresh_unique_digests, on: %i[create update], if: :saved_change_to_unique_answer?
   after_destroy_commit :refresh_unique_digests, if: :unique_answer?
+  after_commit :refresh_sheet_header, if: -> { form.published? }
 
   def choice?
     CHOICE_TYPES.include?(field_type)
@@ -63,6 +64,10 @@ class FormField < ApplicationRecord
   end
 
   private
+
+  def refresh_sheet_header
+    SyncFormJob.perform_later(form_id)
+  end
 
   def parsed_options
     options_text.lines.map(&:strip).reject(&:blank?).uniq

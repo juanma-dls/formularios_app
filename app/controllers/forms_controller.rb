@@ -41,13 +41,28 @@ class FormsController < ApplicationController
 
   def publish
     if @form.fields.empty?
-      redirect_to @form, alert: "Agregá al menos un campo antes de publicar."
-    elsif @form.effective_spreadsheet_id.blank?
-      redirect_to @form, alert: "Conectá una planilla de Google antes de publicar."
-    else
-      @form.published!
-      redirect_to @form, notice: "Formulario publicado."
+      return redirect_to @form, alert: "Agregá al menos un campo antes de publicar."
     end
+    if @form.effective_spreadsheet_id.blank?
+      return redirect_to @form, alert: "Conectá una planilla de Google antes de publicar."
+    end
+
+    # Si cambió la planilla desde la última publicación, se empieza en una pestaña nueva
+    if @form.synced_spreadsheet_id != @form.effective_spreadsheet_id
+      @form.update!(synced_spreadsheet_id: nil, sheet_gid: nil)
+    end
+
+    if FormSheetSync.call(@form)
+      @form.published!
+      redirect_to @form, notice: "Formulario publicado. Las respuestas se guardan en la pestaña \"#{@form.sheet_title}\"."
+    else
+      redirect_to @form, alert: "No se pudo preparar la planilla: #{@form.last_sync_error}"
+    end
+  end
+
+  def sync
+    SyncFormJob.perform_later(@form.id)
+    redirect_to @form, notice: "Sincronización en curso. Recargá en unos segundos para ver el resultado."
   end
 
   def close

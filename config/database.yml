@@ -19,8 +19,13 @@ default: &default
   host: <%= ENV.fetch("DB_HOST", "localhost") %>
 
 development:
-  <<: *default
-  database: formularios_app_development
+  primary:
+    <<: *default
+    database: formularios_app_development
+  queue:
+    <<: *default
+    database: formularios_app_development_queue
+    migrations_paths: db/queue_migrate
 
 test:
   <<: *default

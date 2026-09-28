@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_002109) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_013106) do
   create_table "areas", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "organization_id", null: false
     t.string "name", null: false
@@ -60,6 +60,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_002109) do
     t.string "spreadsheet_id"
     t.string "spreadsheet_title"
     t.datetime "spreadsheet_connected_at"
+    t.string "synced_spreadsheet_id"
+    t.integer "sheet_gid"
+    t.json "sheet_columns"
+    t.datetime "last_synced_at"
+    t.text "last_sync_error"
     t.index ["area_id"], name: "index_forms_on_area_id"
     t.index ["public_id"], name: "index_forms_on_public_id", unique: true
   end
