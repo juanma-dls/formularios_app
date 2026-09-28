@@ -17,6 +17,9 @@ es:
       organization:
         name: Nombre
         slug: Identificador
+        brand_color: Color principal
+        logo: Logo
+        banner: Banner
       area:
         name: Nombre
         slug: Identificador
@@ -36,3 +39,4 @@ es:
         image: Imagen
       terms_required: Bases y condiciones
       terms_document: PDF de bases y condiciones
+      

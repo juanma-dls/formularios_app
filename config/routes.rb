@@ -17,6 +17,7 @@ Rails.application.routes.draw do
       patch :close
       get :preview
       post :sync
+      get :qr
     end
 
     resource :spreadsheet_connection, only: %i[new create destroy]

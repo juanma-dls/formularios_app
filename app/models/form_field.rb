@@ -10,7 +10,8 @@ class FormField < ApplicationRecord
     "single_choice"   => "Opción única",
     "dropdown"        => "Lista desplegable",
     "multiple_choice" => "Casillas (varias opciones)",
-    "image_choice"    => "Opción única con imagen"
+    "image_choice"    => "Opción única con imagen",
+    "section"         => "Sección (título)"
   }.freeze
 
   ICONS = {
@@ -24,7 +25,8 @@ class FormField < ApplicationRecord
     "single_choice"   => "bi-ui-radios",
     "dropdown"        => "bi-menu-button-wide",
     "multiple_choice" => "bi-ui-checks",
-    "image_choice"    => "bi-images"
+    "image_choice"    => "bi-images",
+    "section"         => "bi-type-h2"
   }.freeze
 
   CHOICE_TYPES   = %w[single_choice dropdown multiple_choice image_choice].freeze
@@ -40,6 +42,8 @@ class FormField < ApplicationRecord
 
   before_validation :set_defaults, on: :create
   before_validation :normalize_option_positions
+  before_validation :clear_input_flags, if: :section?
+  before_validation { self.starts_page = false unless section? }
 
   validates :label, presence: true, length: { maximum: 200 }
   validates :field_type, inclusion: { in: TYPES.keys }
@@ -63,6 +67,14 @@ class FormField < ApplicationRecord
 
   def type_name
     TYPES[field_type]
+  end
+
+  def section?
+    field_type == "section"
+  end
+
+  def input?
+    !section?
   end
 
   # Las opciones se editan como texto, una por línea
@@ -99,6 +111,11 @@ class FormField < ApplicationRecord
   end
 
   private
+
+  def clear_input_flags
+    self.required = false
+    self.unique_answer = false
+  end
 
   def option_labels_unique
     repeated = active_option_labels.group_by(&:downcase).select { |_, labels| labels.size > 1 }.map { |_, labels| labels.first }

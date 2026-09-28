@@ -1,6 +1,6 @@
 class FormsController < ApplicationController
   before_action :set_area, only: %i[index new create]
-  before_action :set_form, only: %i[show edit update destroy publish close preview]
+  before_action :set_form, except: %i[index new create]
 
   def index
     @forms = @area.forms.includes(:fields).order(created_at: :desc)
@@ -74,6 +74,21 @@ class FormsController < ApplicationController
     @preview = true
     @values = {}
     render "public_forms/show", layout: "public"
+  end
+
+  def qr
+    return redirect_to(@form, alert: "Publicá el formulario para generar el QR.") unless @form.published?
+
+    qr = RQRCode::QRCode.new(public_form_url(@form.public_id))
+
+    if params[:download]
+      png = qr.as_png(size: 1024, border_modules: 4, color: "black", fill: "white")
+      send_data png.to_s, type: "image/png", filename: "qr-#{@form.public_id}.png", disposition: "attachment"
+    else
+      svg = qr.as_svg(module_size: 8, standalone: true, use_path: true, viewbox: true,
+                      color: "000", fill: "fff", shape_rendering: "crispEdges")
+      send_data svg, type: "image/svg+xml", disposition: "inline"
+    end
   end
 
   private

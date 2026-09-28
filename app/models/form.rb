@@ -36,6 +36,19 @@ class Form < ApplicationRecord
     organization if organization.spreadsheet_connected?
   end
 
+  def pages
+    groups = fields.to_a.slice_before { |field| field.section? && field.starts_page? }.to_a
+    groups.presence || [[]]
+  end
+
+  def question_count
+    fields.count(&:input?)
+  end
+
+  def page_count
+    fields.count { |field| field.section? && field.starts_page? } + 1
+  end
+
   private
 
   def captcha_configured

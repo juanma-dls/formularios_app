@@ -174,3 +174,45 @@ $bootstrap-icons-font-src: url("bootstrap-icons.woff2") format("woff2");
     transition: none;
   }
 }
+
+.brand-top {
+  border-top: 6px solid var(--brand, #{$primary}) !important;
+}
+
+turbo-frame[data-field-id] {
+  display: block;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.field-row {
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  padding: .5rem .75rem;
+  margin-bottom: .375rem;
+  min-height: 3rem;
+}
+
+.field-row-section {
+  background: $light;
+}
+
+.page-divider {
+  padding: .6rem .75rem;
+  margin: 1rem 0 .5rem;
+  border-radius: $border-radius;
+  background: rgba($primary, .08);
+  border: 1px solid rgba($primary, .25);
+}
+
+.page-toggle .bi {
+  display: inline-block;
+  transition: transform .15s ease;
+}
+
+[data-collapsed] .page-toggle .bi {
+  transform: rotate(-90deg);
+}

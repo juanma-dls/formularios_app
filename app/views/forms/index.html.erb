@@ -11,7 +11,9 @@
       <%= link_to form, class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center" do %>
         <div>
           <div class="fw-semibold"><%= form.title %></div>
-          <div class="small text-secondary"><%= pluralize(form.fields.size, "campo", plural: "campos") %></div>
+          <div class="small text-secondary">
+            <%= pluralize(form.question_count, "pregunta", plural: "preguntas") %><%= " en #{form.page_count} páginas" if form.page_count > 1 %>
+          </div>
         </div>
         <%= form_status_badge(form) %>
       <% end %>

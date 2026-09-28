@@ -71,6 +71,27 @@ class GoogleSheets
       end
     end
 
+    def column_values(spreadsheet_id, range)
+      handle_errors do
+        service.get_spreadsheet_values(spreadsheet_id, range).values || []
+      end
+    end
+
+    # Elimina columnas enteras de una pestaña. Los índices empiezan en 0 (A = 0)
+    def delete_columns!(spreadsheet_id, sheet_id, indexes)
+      return if indexes.empty?
+
+      handle_errors do
+        requests = indexes.sort.reverse.map do |index|
+          S::Request.new(delete_dimension: S::DeleteDimensionRequest.new(
+            range: S::DimensionRange.new(sheet_id: sheet_id, dimension: "COLUMNS",
+                                        start_index: index, end_index: index + 1)
+          ))
+        end
+        batch_update(spreadsheet_id, requests)
+      end
+    end
+
     private
 
     def service

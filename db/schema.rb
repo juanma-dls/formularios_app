@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_28_043209) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_135102) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -71,6 +71,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_043209) do
     t.string "key", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "starts_page", default: false, null: false
     t.index ["form_id", "key"], name: "index_form_fields_on_form_id_and_key", unique: true
     t.index ["form_id"], name: "index_form_fields_on_form_id"
   end
@@ -121,6 +122,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_28_043209) do
     t.string "spreadsheet_id"
     t.string "spreadsheet_title"
     t.datetime "spreadsheet_connected_at"
+    t.string "brand_color"
     t.index ["slug"], name: "index_organizations_on_slug", unique: true
   end
 

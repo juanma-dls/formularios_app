@@ -1,12 +1,12 @@
 class FormFieldsController < ApplicationController
-  EDITABLE = %i[label help_text required unique_answer].freeze
+  EDITABLE = %i[label help_text required unique_answer starts_page].freeze
 
   before_action :set_form
   before_action :set_field, only: %i[edit update destroy duplicate]
 
   def create
     @field = @form.fields.new(params.expect(form_field: [:field_type, *EDITABLE]))
-    @field.label = "Nueva pregunta" if @field.label.blank?
+    @field.label = default_label(@field) if @field.label.blank?
     @field.options_text = "Opción 1\nOpción 2" if @field.choice? && @field.options_text.blank?
 
     if @field.save
@@ -90,6 +90,11 @@ class FormFieldsController < ApplicationController
   end
 
   private
+
+  def default_label(field)
+    return "Nueva pregunta" unless field.section?
+    field.starts_page? ? "Nueva página" : "Nueva sección"
+  end
 
   def already_in_form?(existing, attrs)
     label = attrs[:label].parameterize

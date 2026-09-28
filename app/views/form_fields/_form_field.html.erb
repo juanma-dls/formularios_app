@@ -1,62 +1,46 @@
-<%= turbo_frame_tag field, data: { field_id: field.id }, class: "d-block" do %>
-  <div class="card mb-2">
-    <div class="card-body d-flex gap-3 align-items-start">
-      <span class="drag-handle fs-5 lh-1 pt-1" title="Arrastrar para reordenar">
-        <i class="bi bi-grip-vertical"></i>
-      </span>
+<% page_break = field.section? && field.starts_page? %>
+<%= turbo_frame_tag field, data: { field_id: field.id, pages_target: "item",
+      page_break: (page_break ? "" : nil), kind: (field.input? ? "input" : "section") } do %>
+  <% if page_break %>
+    <div class="page-divider d-flex align-items-center gap-2">
+      <span class="drag-handle" title="Arrastrar para reordenar"><i class="bi bi-grip-vertical"></i></span>
+      <button type="button" class="btn btn-sm btn-link text-body p-0 page-toggle" data-action="pages#toggle"
+              aria-expanded="true" aria-label="Mostrar u ocultar las preguntas de esta página">
+        <i class="bi bi-chevron-down"></i>
+      </button>
+      <span class="fw-semibold text-nowrap">Página <span data-page-number></span></span>
+      <span class="text-secondary text-truncate"><%= field.label %></span>
+      <span class="small text-secondary ms-auto text-nowrap" data-page-count></span>
+      <%= render "form_fields/field_actions", field: field %>
+    </div>
+  <% else %>
+    <div class="field-row d-flex align-items-center gap-2<%= ' field-row-section' if field.section? %>">
+      <span class="drag-handle" title="Arrastrar para reordenar"><i class="bi bi-grip-vertical"></i></span>
+      <i class="bi <%= field.icon %> text-secondary" title="<%= field.type_name %>"></i>
 
       <div class="flex-grow-1 min-w-0">
-        <div class="fw-semibold"><%= field.label %></div>
-        <% if field.help_text.present? %>
-          <div class="small text-secondary"><%= field.help_text %></div>
-        <% end %>
-
-        <div class="d-flex flex-wrap gap-1 mt-2">
-          <span class="badge bg-light text-body border fw-medium">
-            <i class="bi <%= field.icon %> me-1"></i><%= field.type_name %>
-          </span>
-          <% if field.required? %>
-            <span class="badge bg-light text-body border fw-medium">Obligatorio</span>
-          <% end %>
-          <% if field.unique_answer? %>
-            <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle fw-medium">
-              <i class="bi bi-shield-check me-1"></i>Sin repetidos
-            </span>
-          <% end %>
+        <div class="text-truncate<%= ' fw-semibold' if field.section? %>">
+          <%= field.label %>
+          <% if field.required? %><span class="text-danger" title="Obligatoria">*</span><% end %>
         </div>
-
-        <% if field.field_type == "image_choice" %>
-          <div class="d-flex flex-wrap gap-2 mt-2">
-            <% field.options.each do |option| %>
-              <div class="text-center small" style="width: 64px">
-                <% if option.image.attached? %>
-                  <%= image_tag option.image.variant(:thumb), alt: "", class: "rounded d-block mx-auto",
-                        style: "width: 48px; height: 64px; object-fit: cover" %>
-                <% else %>
-                  <div class="bg-light border rounded mx-auto" style="width: 48px; height: 64px"></div>
-                <% end %>
-                <div class="text-truncate text-secondary" title="<%= option.label %>"><%= option.label %></div>
-              </div>
-            <% end %>
-          </div>
-        <% elsif field.choice? %>
-          <div class="small text-secondary mt-2"><%= field.options.map(&:label).join(", ") %></div>
+        <% summary = field.choice? ? field.options.map(&:label).join(", ") : field.help_text %>
+        <% if summary.present? %>
+          <div class="small text-secondary text-truncate"><%= summary %></div>
         <% end %>
       </div>
 
-      <div class="d-flex gap-1 flex-shrink-0">
-        <%= link_to edit_form_form_field_path(@form, field), class: "btn btn-sm btn-outline-secondary btn-icon", title: "Editar" do %>
-          <i class="bi bi-pencil"></i><span class="visually-hidden">Editar</span>
-        <% end %>
-        <%= button_to duplicate_form_form_field_path(@form, field), class: "btn btn-sm btn-outline-secondary btn-icon", title: "Duplicar" do %>
-          <i class="bi bi-copy"></i><span class="visually-hidden">Duplicar</span>
-        <% end %>
-        <%= button_to form_form_field_path(@form, field), method: :delete,
-              class: "btn btn-sm btn-outline-danger btn-icon", title: "Eliminar",
-              form: { data: { turbo_confirm: "¿Eliminar \"#{field.label}\"?" } } do %>
-          <i class="bi bi-trash"></i><span class="visually-hidden">Eliminar</span>
-        <% end %>
-      </div>
+      <% if field.field_type == "image_choice" %>
+        <span class="badge bg-light text-body border fw-medium text-nowrap">
+          <i class="bi bi-images me-1"></i><%= field.options.count { |o| o.image.attached? } %>/<%= field.options.size %>
+        </span>
+      <% end %>
+      <% if field.unique_answer? %>
+        <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle fw-medium text-nowrap">
+          <i class="bi bi-shield-check me-1"></i>Sin repetidos
+        </span>
+      <% end %>
+
+      <%= render "form_fields/field_actions", field: field %>
     </div>
-  </div>
+  <% end %>
 <% end %>

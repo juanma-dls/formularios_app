@@ -1,0 +1,13 @@
+<div class="d-flex gap-1 flex-shrink-0">
+  <%= link_to edit_form_form_field_path(@form, field), class: "btn btn-sm btn-outline-secondary btn-icon", title: "Editar" do %>
+    <i class="bi bi-pencil"></i><span class="visually-hidden">Editar</span>
+  <% end %>
+  <%= button_to duplicate_form_form_field_path(@form, field), class: "btn btn-sm btn-outline-secondary btn-icon", title: "Duplicar" do %>
+    <i class="bi bi-copy"></i><span class="visually-hidden">Duplicar</span>
+  <% end %>
+  <%= button_to form_form_field_path(@form, field), method: :delete,
+        class: "btn btn-sm btn-outline-danger btn-icon", title: "Eliminar",
+        form: { data: { turbo_confirm: "¿Eliminar \"#{field.label}\"?" } } do %>
+    <i class="bi bi-trash"></i><span class="visually-hidden">Eliminar</span>
+  <% end %>
+</div>

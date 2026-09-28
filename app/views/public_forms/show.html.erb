@@ -7,7 +7,18 @@
     </div>
   <% end %>
 
-  <div class="bg-white rounded border p-4 mb-3">
+  <% if @organization.banner.attached? %>
+    <%= image_tag @organization.banner.variant(:header), alt: "", class: "w-100 rounded mb-3",
+          style: "max-height: 240px; object-fit: cover" %>
+  <% end %>
+
+  <div class="bg-white rounded border p-4 mb-3 brand-top">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <% if @organization.logo.attached? %>
+        <%= image_tag @organization.logo.variant(:header), alt: "", style: "max-height: 40px; max-width: 120px; object-fit: contain" %>
+      <% end %>
+      <span class="small text-secondary fw-medium"><%= @organization.name %></span>
+    </div>
     <h1 class="h2 mb-2"><%= @form.title %></h1>
     <% if @form.description.present? %>
       <div class="text-secondary"><%= simple_format(@form.description, {}, wrapper_tag: "p", class: "mb-0") %></div>
@@ -19,46 +30,87 @@
     <div class="alert alert-danger">Revisá las preguntas marcadas en rojo.</div>
   <% end %>
 
+  <% pages = @form.pages %>
   <%= form_with url: public_form_path(@form.public_id), method: :post,
-      data: { turbo: false, controller: "submit-once", action: "submit->submit-once#disable" } do %>
+        html: { novalidate: true },
+        data: { turbo: false, controller: "wizard live-validation submit-once",
+                action: "submit->wizard#guard submit->live-validation#submit submit->submit-once#disable " \
+                        "focusout->live-validation#check change->live-validation#check " \
+                        "live-validation:reveal->wizard#reveal" } do %>
 
-    <% @form.fields.each do |field| %>
-      <%= render "public_forms/field", field: field, value: @values[field.key],
-                 error: @submission&.field_errors&.dig(field.key) %>
+    <% if pages.size > 1 %>
+      <div class="mb-3" data-wizard-target="progress" hidden>
+        <div class="small text-secondary mb-1">
+          Página <span data-wizard-target="current">1</span> de <%= pages.size %>
+        </div>
+        <div class="progress" style="height: 6px" role="presentation">
+          <div class="progress-bar" data-wizard-target="bar" style="width: <%= (100.0 / pages.size).round %>%"></div>
+        </div>
+      </div>
     <% end %>
 
-    <% if @form.terms_required? && @form.terms_document.attached? %>
-      <% terms_error = @submission&.field_errors&.dig(Submission::TERMS_KEY) %>
-      <div class="bg-white rounded border p-4 mb-3<%= ' border-danger' if terms_error %>">
-        <div class="form-check">
-          <%= check_box_tag :accept_terms, "1", params[:accept_terms] == "1",
-                id: "accept_terms", class: "form-check-input", required: true %>
-          <label class="form-check-label" for="accept_terms">
-            Leí y acepto las
-            <%= link_to "bases y condiciones", rails_blob_path(@form.terms_document, disposition: "inline"),
-                  target: "_blank", rel: "noopener" %>
-            <span class="text-danger">*</span>
-          </label>
-        </div>
-        <% if terms_error %>
-          <div class="text-danger small mt-2"><%= terms_error %></div>
+    <% pages.each_with_index do |page_fields, index| %>
+      <div data-wizard-target="page">
+        <% page_fields.each do |field| %>
+          <% if field.section? %>
+            <%= render "public_forms/section", field: field %>
+          <% else %>
+            <%= render "public_forms/field", field: field, value: @values[field.key],
+                      error: @submission&.field_errors&.dig(field.key) %>
+          <% end %>
+        <% end %>
+
+        <% if pages.size > 1 %>
+          <div class="d-flex justify-content-between gap-2 mb-3" data-wizard-target="nav" hidden>
+            <% if index > 0 %>
+              <button type="button" class="btn btn-outline-secondary" data-action="wizard#previous">
+                <i class="bi bi-arrow-left me-1"></i>Anterior
+              </button>
+            <% else %>
+              <span></span>
+            <% end %>
+            <% if index < pages.size - 1 %>
+              <button type="button" class="btn btn-primary" data-action="wizard#next">
+                Siguiente<i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            <% end %>
+          </div>
         <% end %>
       </div>
     <% end %>
 
-    <input type="text" name="website" class="d-none" tabindex="-1" autocomplete="off" aria-hidden="true">
-
-   <% unless @preview %>
-      <input type="hidden" name="t" value="<%= timing_token %>">
-
-      <% if @form.captcha_enabled? %>
-        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-        <div class="cf-turnstile mb-3" data-sitekey="<%= TurnstileVerifier.site_key %>" data-language="es"></div>
-        <% if @captcha_error %>
-          <div class="alert alert-danger"><%= @captcha_error %></div>
-        <% end %>
+    <div data-wizard-target="finish">
+      <% if @form.terms_required? && @form.terms_document.attached? %>
+        <% terms_error = @submission&.field_errors&.dig(Submission::TERMS_KEY) %>
+        <div class="bg-white rounded border p-4 mb-3<%= ' border-danger' if terms_error %>"
+            data-live-validation-target="field" data-type="terms" data-required="true"
+            <%= "data-has-error" if terms_error %>>
+          <div class="form-check">
+            <%= check_box_tag :accept_terms, "1", params[:accept_terms] == "1", id: "accept_terms", class: "form-check-input" %>
+            <label class="form-check-label" for="accept_terms">
+              Leí y acepto las
+              <%= link_to "bases y condiciones", rails_blob_path(@form.terms_document, disposition: "inline"),
+                    target: "_blank", rel: "noopener" %>
+              <span class="text-danger">*</span>
+            </label>
+          </div>
+          <div class="text-danger small mt-2" data-role="error" aria-live="polite" <%= "hidden" unless terms_error %>><%= terms_error %></div>
+        </div>
       <% end %>
-      <button type="submit" class="btn btn-primary btn-lg w-100">Enviar</button>
-    <% end %>
+
+      <input type="text" name="website" class="d-none" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <% unless @preview %>
+        <input type="hidden" name="t" value="<%= timing_token %>">
+        <% if @form.captcha_enabled? %>
+          <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+          <div class="cf-turnstile mb-3" data-sitekey="<%= TurnstileVerifier.site_key %>" data-language="es"></div>
+          <% if @captcha_error %>
+            <div class="alert alert-danger"><%= @captcha_error %></div>
+          <% end %>
+        <% end %>
+        <button type="submit" class="btn btn-primary btn-lg w-100">Enviar</button>
+      <% end %>
+    </div>
   <% end %>
 </div>
