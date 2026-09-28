@@ -1,0 +1,5 @@
+<% content_for :title, @form.title %>
+<div class="mx-auto text-center bg-white rounded border p-5" style="max-width: 720px">
+  <h1 class="h3 text-success mb-3">Respuesta enviada</h1>
+  <p class="mb-0"><%= @form.success_message.presence || "¡Gracias! Tu respuesta fue registrada." %></p>
+</div>

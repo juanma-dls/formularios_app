@@ -3,6 +3,7 @@ class Area < ApplicationRecord
 
   belongs_to :organization
   has_many :memberships, dependent: :destroy
+  has_many :forms, dependent: :destroy
 
   before_validation { self.slug = name.to_s.parameterize if slug.blank? }
 

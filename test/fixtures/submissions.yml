@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  form: one
+  answers: 
+  unique_digest: MyString
+  synced_at: 2026-09-27 21:21:09
+
+two:
+  form: two
+  answers: 
+  unique_digest: MyString
+  synced_at: 2026-09-27 21:21:09

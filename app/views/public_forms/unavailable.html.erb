@@ -1,0 +1,5 @@
+<% content_for :title, "Formulario no disponible" %>
+<div class="mx-auto text-center bg-white rounded border p-5" style="max-width: 720px">
+  <h1 class="h4 mb-3"><%= @form.closed? ? @form.title : "Formulario no disponible" %></h1>
+  <p class="text-secondary mb-0">Este formulario no está recibiendo respuestas en este momento.</p>
+</div>

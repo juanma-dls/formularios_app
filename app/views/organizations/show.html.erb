@@ -63,6 +63,7 @@
               <%= link_to "Planilla propia", new_organization_area_spreadsheet_connection_path(@organization, area),
                     class: "btn btn-sm btn-outline-primary" %>
             <% end %>
+            <%= link_to "Formularios", organization_area_forms_path(@organization, area), class: "btn btn-sm btn-primary" %>
             <%= link_to "Editar", edit_organization_area_path(@organization, area), class: "btn btn-sm btn-outline-secondary" %>
             <%= button_to "Eliminar", organization_area_path(@organization, area), method: :delete,
                   class: "btn btn-sm btn-outline-danger",

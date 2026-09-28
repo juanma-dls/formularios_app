@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_27_204018) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_28_002109) do
   create_table "areas", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "organization_id", null: false
     t.string "name", null: false
@@ -21,6 +21,47 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_204018) do
     t.string "spreadsheet_title"
     t.datetime "spreadsheet_connected_at"
     t.index ["organization_id", "slug"], name: "index_areas_on_organization_id_and_slug", unique: true
+  end
+
+  create_table "field_options", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "form_field_id", null: false
+    t.string "label", null: false
+    t.integer "position", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["form_field_id"], name: "index_field_options_on_form_field_id"
+  end
+
+  create_table "form_fields", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "form_id", null: false
+    t.string "field_type", null: false
+    t.string "label", null: false
+    t.string "help_text"
+    t.boolean "required", default: false, null: false
+    t.boolean "unique_answer", default: false, null: false
+    t.integer "position", null: false
+    t.string "key", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["form_id", "key"], name: "index_form_fields_on_form_id_and_key", unique: true
+    t.index ["form_id"], name: "index_form_fields_on_form_id"
+  end
+
+  create_table "forms", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "area_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.string "public_id", null: false
+    t.integer "status", default: 0, null: false
+    t.text "success_message"
+    t.string "sheet_title"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "spreadsheet_id"
+    t.string "spreadsheet_title"
+    t.datetime "spreadsheet_connected_at"
+    t.index ["area_id"], name: "index_forms_on_area_id"
+    t.index ["public_id"], name: "index_forms_on_public_id", unique: true
   end
 
   create_table "memberships", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -46,6 +87,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_204018) do
     t.index ["slug"], name: "index_organizations_on_slug", unique: true
   end
 
+  create_table "submissions", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "form_id", null: false
+    t.json "answers", null: false
+    t.string "unique_digest"
+    t.datetime "synced_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["form_id", "synced_at"], name: "index_submissions_on_form_id_and_synced_at"
+    t.index ["form_id", "unique_digest"], name: "index_submissions_on_form_id_and_unique_digest", unique: true
+    t.index ["form_id"], name: "index_submissions_on_form_id"
+  end
+
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.string "email", null: false
@@ -56,7 +109,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_27_204018) do
   end
 
   add_foreign_key "areas", "organizations"
+  add_foreign_key "field_options", "form_fields"
+  add_foreign_key "form_fields", "forms"
+  add_foreign_key "forms", "areas"
   add_foreign_key "memberships", "areas"
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
+  add_foreign_key "submissions", "forms"
 end

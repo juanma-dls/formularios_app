@@ -1,5 +1,5 @@
 <h1 class="h3 mb-1">Conectar planilla de Google</h1>
-<p class="text-secondary mb-4"><%= [@organization.name, @area&.name].compact.join(" / ") %></p>
+<p class="text-secondary mb-4"><%= [@organization.name, @area&.name, @form&.title].compact.join(" / ") %></p>
 
 <div class="card mb-4">
   <div class="card-body">
@@ -21,14 +21,14 @@
 
 <div class="card">
   <div class="card-body">
-    <%= form_with url: polymorphic_path([@organization, @area, :spreadsheet_connection].compact), method: :post do |f| %>
+   <%= form_with url: (@form ? form_spreadsheet_connection_path(@form) : polymorphic_path([@organization, @area, :spreadsheet_connection].compact)), method: :post do |f| %>
       <div class="mb-3">
         <%= f.label :spreadsheet_url, "Enlace de la planilla", class: "form-label" %>
         <%= f.text_field :spreadsheet_url, value: params[:spreadsheet_url], class: "form-control",
               required: true, placeholder: "https://docs.google.com/spreadsheets/d/..." %>
       </div>
       <%= f.submit "Verificar y conectar", class: "btn btn-primary", data: { turbo_submits_with: "Verificando…" } %>
-      <%= link_to "Cancelar", @organization, class: "btn btn-link" %>
+      <%= link_to "Cancelar", (@form || @organization), class: "btn btn-link" %>
     <% end %>
   </div>
 </div>

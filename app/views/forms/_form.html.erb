@@ -1,0 +1,23 @@
+<%= form_with model: (@form.new_record? ? [@organization, @area, @form] : @form) do |f| %>
+  <%= render "shared/errors", model: @form %>
+
+  <div class="mb-3">
+    <%= f.label :title, class: "form-label" %>
+    <%= f.text_field :title, class: "form-control", required: true, autofocus: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :description, class: "form-label" %>
+    <%= f.text_area :description, rows: 3, class: "form-control" %>
+    <div class="form-text">Se muestra debajo del título en el formulario público.</div>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :success_message, class: "form-label" %>
+    <%= f.text_area :success_message, rows: 2, class: "form-control", placeholder: "¡Gracias! Tu respuesta fue registrada." %>
+    <div class="form-text">Lo que ve la persona después de enviar. Si lo dejás vacío se usa el texto de ejemplo.</div>
+  </div>
+
+  <%= f.submit "Guardar", class: "btn btn-primary" %>
+  <%= link_to "Cancelar", (@form.persisted? ? @form : organization_area_forms_path(@organization, @area)), class: "btn btn-link" %>
+<% end %>

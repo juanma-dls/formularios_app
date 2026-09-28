@@ -7,6 +7,12 @@ es:
       area:
         one: Área
         other: Áreas
+      form:
+        one: Formulario
+        other: Formularios
+      form_field:
+        one: Campo
+        other: Campos
     attributes:
       organization:
         name: Nombre
@@ -14,3 +20,13 @@ es:
       area:
         name: Nombre
         slug: Identificador
+      form:
+        title: Título
+        description: Descripción
+        success_message: Mensaje al enviar
+      form_field:
+        label: Pregunta
+        help_text: Texto de ayuda
+        required: Obligatorio
+        unique_answer: No permitir respuestas repetidas
+        options_text: Opciones

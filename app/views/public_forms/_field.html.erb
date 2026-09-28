@@ -1,0 +1,79 @@
+<% id = "f_#{field.key}" %>
+<% name = "answers[#{field.key}]" %>
+<% invalid = error.present? ? " is-invalid" : "" %>
+<% group = %w[single_choice multiple_choice image_choice].include?(field.field_type) %>
+
+<div class="bg-white rounded border p-4 mb-3<%= ' border-danger' if error %>">
+  <%= content_tag(group ? :div : :label, id: "#{id}_label", for: (group ? nil : id),
+                  class: "form-label fw-semibold d-block mb-1") do %>
+    <%= field.label %><% if field.required? %> <span class="text-danger">*</span><% end %>
+  <% end %>
+
+  <% if field.help_text.present? %>
+    <div class="form-text mt-0 mb-2"><%= field.help_text %></div>
+  <% end %>
+
+  <% case field.field_type %>
+  <% when "long_text" %>
+    <%= text_area_tag name, value, id: id, rows: 4, maxlength: 5000, class: "form-control#{invalid}" %>
+
+  <% when "number" %>
+    <%= text_field_tag name, value, id: id, inputmode: "decimal", class: "form-control#{invalid}" %>
+
+  <% when "email" %>
+    <%= email_field_tag name, value, id: id, autocomplete: "email", class: "form-control#{invalid}" %>
+
+  <% when "phone" %>
+    <%= telephone_field_tag name, value, id: id, autocomplete: "tel", placeholder: "Ej: 2615551234",
+          class: "form-control#{invalid}" %>
+
+  <% when "dni" %>
+    <%= text_field_tag name, value, id: id, inputmode: "numeric", maxlength: 10, placeholder: "Solo números",
+          class: "form-control#{invalid}" %>
+
+  <% when "date" %>
+    <%= date_field_tag name, value, id: id, class: "form-control#{invalid}", style: "max-width: 14rem" %>
+
+  <% when "dropdown" %>
+    <%= select_tag name, options_for_select(field.options.map(&:label), value),
+          include_blank: "Elegí una opción", id: id, class: "form-select#{invalid}" %>
+
+  <% when "single_choice", "multiple_choice" %>
+    <div role="group" aria-labelledby="<%= id %>_label">
+      <% field.options.each_with_index do |option, i| %>
+        <div class="form-check">
+          <% if field.field_type == "multiple_choice" %>
+            <%= check_box_tag "#{name}[]", option.label, Array(value).include?(option.label),
+                  id: "#{id}_#{i}", class: "form-check-input" %>
+          <% else %>
+            <%= radio_button_tag name, option.label, value == option.label,
+                  id: "#{id}_#{i}", class: "form-check-input" %>
+          <% end %>
+          <label class="form-check-label" for="<%= id %>_<%= i %>"><%= option.label %></label>
+        </div>
+      <% end %>
+    </div>
+
+  <% when "image_choice" %>
+    <div class="row g-3" role="radiogroup" aria-labelledby="<%= id %>_label">
+      <% field.options.each_with_index do |option, i| %>
+        <div class="col-6 col-md-4">
+          <%= radio_button_tag name, option.label, value == option.label,
+                id: "#{id}_#{i}", class: "btn-check", autocomplete: "off" %>
+          <label class="btn btn-outline-primary w-100 h-100 p-2" for="<%= id %>_<%= i %>">
+            <div class="bg-light rounded mb-2 d-flex align-items-center justify-content-center text-secondary small"
+                 style="aspect-ratio: 3 / 4">Sin imagen</div>
+            <span class="fw-semibold"><%= option.label %></span>
+          </label>
+        </div>
+      <% end %>
+    </div>
+
+  <% else %>
+    <%= text_field_tag name, value, id: id, maxlength: 255, class: "form-control#{invalid}" %>
+  <% end %>
+
+  <% if error %>
+    <div class="text-danger small mt-2"><%= error %></div>
+  <% end %>
+</div>

@@ -1,0 +1,25 @@
+<%= render "breadcrumb" %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Formularios de <%= @area.name %></h1>
+  <%= link_to "Nuevo formulario", new_organization_area_form_path(@organization, @area), class: "btn btn-primary" %>
+</div>
+
+<% if @forms.any? %>
+  <div class="list-group">
+    <% @forms.each do |form| %>
+      <%= link_to form, class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center" do %>
+        <div>
+          <div class="fw-semibold"><%= form.title %></div>
+          <div class="small text-secondary"><%= pluralize(form.fields.size, "campo", plural: "campos") %></div>
+        </div>
+        <%= form_status_badge(form) %>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="text-center text-secondary py-5 bg-white rounded border">
+    <p class="mb-3">Esta área todavía no tiene formularios.</p>
+    <%= link_to "Crear el primero", new_organization_area_form_path(@organization, @area), class: "btn btn-primary" %>
+  </div>
+<% end %>
